@@ -1,0 +1,10 @@
+{
+  "name": "faidr-core",
+  "version": "0.0.0",
+  "description": "FAIDR numerical kernel: lasso-penalised logistic regression + refit",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  }
+}
