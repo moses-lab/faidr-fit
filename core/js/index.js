@@ -1,1 +1,1 @@
-export { fitLassoLogistic, refitLogistic } from "./solver.js";
+export { fitLassoLogistic, refitLogistic, lambdaMax } from "./solver.js";

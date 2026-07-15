@@ -1,8 +1,8 @@
 // Test 5: convergence invariants of the solver.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fitLassoLogistic } from "../js/solver.js";
-import { lambdaMax, meanNLL, objective } from "./helpers.js";
+import { fitLassoLogistic, lambdaMax } from "../js/solver.js";
+import { meanNLL, objective } from "./helpers.js";
 import { assertClose } from "./assertions.js";
 import { rng, makeNondegenerate } from "./datagen.js";
 

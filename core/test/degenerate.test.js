@@ -2,9 +2,9 @@
 // through the KKT assertion; plus a brute-force 1-D grid-search oracle.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fitLassoLogistic } from "../js/solver.js";
+import { fitLassoLogistic, lambdaMax } from "../js/solver.js";
 import {
-  sigmoid, log1pexp, matrixFromRows, lambdaMax, objective, logit, mean,
+  sigmoid, log1pexp, matrixFromRows, objective, logit, mean,
 } from "./helpers.js";
 import { assertKKT, assertClose, assertAllFinite } from "./assertions.js";
 import { rng, gauss } from "./helpers.js";

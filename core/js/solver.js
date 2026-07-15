@@ -110,6 +110,27 @@ export function fitLassoLogistic(X, y, lambda, opts = {}) {
   return { beta0, beta, features: X.features };
 }
 
+// Smallest λ that zeroes every coefficient: the largest null-model residual
+// correlation on the standardized design, maxⱼ |(1/n) x̃ⱼᵀ(y−ȳ)|. Closed form, so
+// the app can bound its penalty slider without a search. (There is no matching
+// closed form for the lower end: use λ_min = ε·λ_max, ε≈1e-4 when n>p.)
+// `argmax` is a free byproduct of the same scan: the coordinate whose correlation
+// equals λ_max, i.e. the feature that enters first as λ drops below λ_max.
+export function lambdaMax(X, y) {
+  const n = X.n;
+  let ybar = 0; for (let i = 0; i < n; i++) ybar += y[i]; ybar /= n;
+  let lmax = 0, argmax = -1;
+  for (let j = 0; j < X.p; j++) {
+    const c = X.cols[j];
+    let m = 0; for (let i = 0; i < n; i++) m += c[i]; m /= n;
+    let v = 0, g = 0;
+    for (let i = 0; i < n; i++) { const d = c[i] - m; v += d * d; g += d * (y[i] - ybar); }
+    const sd = Math.sqrt(v / n);
+    if (sd > 0) { const val = Math.abs(g / n / sd); if (val > lmax) { lmax = val; argmax = j; } }
+  }
+  return { lambdaMax: lmax, argmax };
+}
+
 // Unpenalised logistic regression on the given columns (original scale), by
 // Newton-Raphson. Returns the intercept and, per feature, the coefficient and its
 // Wald z = β / se, se from the diagonal of (XᵀWX)⁻¹ at convergence. This is the

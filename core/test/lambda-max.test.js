@@ -3,8 +3,8 @@
 // null model; just below, exactly the argmax coordinate switches on.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fitLassoLogistic } from "../js/solver.js";
-import { lambdaMax, logit, mean } from "./helpers.js";
+import { fitLassoLogistic, lambdaMax } from "../js/solver.js";
+import { logit, mean } from "./helpers.js";
 import { assertClose } from "./assertions.js";
 import { rng, makeNondegenerate } from "./datagen.js";
 
@@ -23,7 +23,7 @@ test("λ ≥ λ_max ⇒ all coefficients exactly zero, β0 = logit(ȳ)", () => {
   }
 });
 
-test("λ just below λ_max ⇒ exactly one nonzero coef, at the argmax", () => {
+test("λ just below λ_max ⇒ the argmax coefficient is the first to enter", () => {
   const rand = rng(202);
   for (let t = 0; t < 40; t++) {
     const { X, y } = makeNondegenerate(rand, {
@@ -33,6 +33,13 @@ test("λ just below λ_max ⇒ exactly one nonzero coef, at the argmax", () => {
     const { lambdaMax: lm, argmax } = lambdaMax(X, y);
     const res = fitLassoLogistic(X, y, lm * 0.99);
     const nz = [...res.beta].map((v, j) => (v !== 0 ? j : -1)).filter((j) => j >= 0);
-    assert.deepEqual(nz, [argmax], `expected single nonzero at ${argmax}, got [${nz}]`);
+    // The argmax (strongest null-model correlation) is guaranteed to be the first
+    // coefficient to become nonzero as λ drops below λ_max. We do NOT assert
+    // "exactly one": if a second feature's correlation sits within the 1% band it
+    // enters too, which is common on correlated data and was only absent here by
+    // luck of the tie-free generator. So we assert the always-true invariant:
+    // λ_max is tight (something enters) and the entrant is the argmax.
+    assert.ok(nz.length >= 1, "expected ≥1 nonzero just below λ_max, got none");
+    assert.ok(nz.includes(argmax), `expected argmax ${argmax} among entrants, got [${nz}]`);
   }
 });

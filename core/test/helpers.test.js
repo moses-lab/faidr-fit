@@ -5,8 +5,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   sigmoid, log1pexp, matrixFromRows, colStats, meanNLL, objective,
-  eta, kktViolation, lambdaMax, logit,
+  eta, kktViolation, logit,
 } from "./helpers.js";
+import { lambdaMax } from "../js/solver.js";
 import { assertClose } from "./assertions.js";
 
 const rows = [[1.0, -1.0], [2.0, 0.5], [0.0, 3.0]];
@@ -62,12 +63,13 @@ test("kktViolation coord correlations match hand computation", () => {
   assertClose(w.viol, 0.5752066019061658, 1e-12);
 });
 
-test("lambdaMax argmax is the strongest null-residual correlation", () => {
-  // Null model residual r = y - ȳ; here we just check it returns the coord with
-  // the largest |(1/n) x̃ⱼᵀ(y-ȳ)| and a positive magnitude.
+test("shipped lambdaMax: pinned value and argmax on the 3×2 example", () => {
+  // Closed form maxⱼ |(1/n) x̃ⱼᵀ(y-ȳ)|. Independently hand-computed: column 0 has
+  // the stronger null-residual correlation (0.4082…) vs column 1 (0.0673…), so it
+  // is both the max and the coordinate that enters first below λ_max.
   const { lambdaMax: lm, argmax } = lambdaMax(X, y);
-  assert.ok(lm > 0);
-  assert.ok(argmax === 0 || argmax === 1);
+  assertClose(lm, 0.408248290463863, 1e-12);
+  assert.equal(argmax, 0);
 });
 
 test("logit is the inverse of sigmoid", () => {

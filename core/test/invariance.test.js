@@ -2,8 +2,8 @@
 // — catches gradient-sign bugs). Both are exact symmetries of the mean-loss
 // objective, so the solutions must agree to solver tolerance.
 import { test } from "node:test";
-import { fitLassoLogistic } from "../js/solver.js";
-import { lambdaMax, matrixFromRows } from "./helpers.js";
+import { fitLassoLogistic, lambdaMax } from "../js/solver.js";
+import { matrixFromRows } from "./helpers.js";
 import { assertClose, assertKKT } from "./assertions.js";
 import { rng, makeNondegenerate } from "./datagen.js";
 

@@ -137,20 +137,5 @@ export function kktViolation(X, y, beta0, beta, lambda, tiny = 1e-8) {
   return worst;
 }
 
-// λ_max: smallest λ that zeroes every coefficient. Gradient at the null model
-// (β=0, β0=logit(ȳ), so p̂=ȳ) wrt the standardized coord j is (1/n) x̃ⱼᵀ(y-ȳ).
-export function lambdaMax(X, y) {
-  const { n } = X;
-  const { std } = standardizedCols(X);
-  let ybar = 0; for (let i = 0; i < n; i++) ybar += y[i]; ybar /= n;
-  let lmax = 0, arg = -1;
-  for (let j = 0; j < X.p; j++) {
-    const xj = std[j];
-    let c = 0; for (let i = 0; i < n; i++) c += xj[i] * (y[i] - ybar); c /= n;
-    if (Math.abs(c) > lmax) { lmax = Math.abs(c); arg = j; }
-  }
-  return { lambdaMax: lmax, argmax: arg };
-}
-
 export function logit(p) { return Math.log(p / (1 - p)); }
 export const mean = (a) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i]; return s / a.length; };

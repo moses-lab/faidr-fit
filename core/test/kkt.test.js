@@ -2,8 +2,8 @@
 // broad sweep of random problems (varying N, p, N<p, correlated columns, mixed
 // scales) plus a couple of hand-built cases, each at several λ along the path.
 import { test } from "node:test";
-import { fitLassoLogistic } from "../js/solver.js";
-import { lambdaMax, matrixFromRows } from "./helpers.js";
+import { fitLassoLogistic, lambdaMax } from "../js/solver.js";
+import { matrixFromRows } from "./helpers.js";
 import { assertKKT } from "./assertions.js";
 import { rng, makeNondegenerate } from "./datagen.js";
 
