@@ -1,0 +1,722 @@
+{
+  "net_charge": {
+    "name": "net charge",
+    "desc": "Net charge (# [RK] - # [DE])",
+    "source": "S1"
+  },
+  "WF_complexity": {
+    "name": "Wootton-Federhen sequence complexity",
+    "desc": "Complexity based on SEG algorithm (Wootton and Federhen, 1993), blob length=IDR length, step size = 1",
+    "source": "S1"
+  },
+  "KL_hydropathy": {
+    "name": "Hydrophobicity",
+    "desc": "Kyte-Doolittle scale",
+    "source": "S1"
+  },
+  "isoelectric_point": {
+    "name": "Isoelectric point",
+    "desc": "pH where charge of peptide is neutral",
+    "source": "S1"
+  },
+  "FCR": {
+    "name": "Fraction of charged residues",
+    "desc": "FCR: basic fraction + acidic fraction",
+    "source": "S1"
+  },
+  "ED_ratio": {
+    "name": "E/D ratio",
+    "desc": "Ratio of glutamic acid to aspartic acid residues (#E + 1)/(#D + 1)",
+    "source": "S1"
+  },
+  "RK_ratio": {
+    "name": "R/K ratio",
+    "desc": "Ratio of arginine to lysine residues (#R + 1) /(#K + 1)",
+    "source": "S1"
+  },
+  "SCD": {
+    "name": "Sequence charge decoration",
+    "desc": "Measure of separation between positively versus negatively charged residues",
+    "source": "S1"
+  },
+  "kappa*": {
+    "name": "kappa",
+    "desc": "Charge-patterning parameter (Das & Pappu)",
+    "source": "das-pappu"
+  },
+  "omega*": {
+    "name": "omega",
+    "desc": "Charge-patterning parameter (Das & Pappu)",
+    "source": "das-pappu"
+  },
+  "id=REP_Q2 Q{2,2}": {
+    "name": "Q{2,2}",
+    "desc": "Short repeat, regex Q{2,2}",
+    "source": "repeats"
+  },
+  "id=REP_N2 N{2,2}": {
+    "name": "N{2,2}",
+    "desc": "Short repeat, regex N{2,2}",
+    "source": "repeats"
+  },
+  "id=REP_S2 S{2,2}": {
+    "name": "S{2,2}",
+    "desc": "Short repeat, regex S{2,2}",
+    "source": "repeats"
+  },
+  "id=REP_G2 G{2,2}": {
+    "name": "G{2,2}",
+    "desc": "Short repeat, regex G{2,2}",
+    "source": "repeats"
+  },
+  "id=REP_E2 E{2,2}": {
+    "name": "E{2,2}",
+    "desc": "Short repeat, regex E{2,2}",
+    "source": "repeats"
+  },
+  "id=REP_D2 D{2,2}": {
+    "name": "D{2,2}",
+    "desc": "Short repeat, regex D{2,2}",
+    "source": "repeats"
+  },
+  "id=REP_K2 K{2,2}": {
+    "name": "K{2,2}",
+    "desc": "Short repeat, regex K{2,2}",
+    "source": "repeats"
+  },
+  "id=REP_R2 R{2,2}": {
+    "name": "R{2,2}",
+    "desc": "Short repeat, regex R{2,2}",
+    "source": "repeats"
+  },
+  "id=REP_P2 P{2,2}": {
+    "name": "P{2,2}",
+    "desc": "Short repeat, regex P{2,2}",
+    "source": "repeats"
+  },
+  "id=REP_QN2 [QN]{2,}": {
+    "name": "[QN]{2,}",
+    "desc": "Short repeat, regex [QN]{2,}",
+    "source": "repeats"
+  },
+  "id=REP_RG2 [RG]{2,}": {
+    "name": "[RG]{2,}",
+    "desc": "Short repeat, regex [RG]{2,}",
+    "source": "repeats"
+  },
+  "id=REP_PR [PR]{2,}": {
+    "name": "[PR]{2,}",
+    "desc": "Short repeat, regex [PR]{2,}",
+    "source": "repeats"
+  },
+  "id=REP_FG2 [FG]{2,}": {
+    "name": "[FG]{2,}",
+    "desc": "Short repeat, regex [FG]{2,}",
+    "source": "repeats"
+  },
+  "id=REP_SG2 [SG]{2,}": {
+    "name": "[SG]{2,}",
+    "desc": "Short repeat, regex [SG]{2,}",
+    "source": "repeats"
+  },
+  "id=REP_SR2 [SR]{2,}": {
+    "name": "[SR]{2,}",
+    "desc": "Short repeat, regex [SR]{2,}",
+    "source": "repeats"
+  },
+  "id=REP_KAP2 [KAP]{2,}": {
+    "name": "[KAP]{2,}",
+    "desc": "Short repeat, regex [KAP]{2,}",
+    "source": "repeats"
+  },
+  "id=REP_PTS2 [PTS]{2,}": {
+    "name": "[PTS]{2,}",
+    "desc": "Short repeat, regex [PTS]{2,}",
+    "source": "repeats"
+  },
+  "CLV_C14_Caspase3-7": {
+    "name": "Caspase cleavage motif",
+    "desc": "http://elm.eu.org/elms/CLV_C14_Caspase3-7",
+    "source": "S1"
+  },
+  "DEG_APCC_KENBOX_2": {
+    "name": "APCC-binding Destruction motif",
+    "desc": "Motif conserving the exact sequence KEN that binds to the APC/C subunit Cdh1 causing the protein to be targeted for  26S proteasome mediated degradation.",
+    "source": "S1"
+  },
+  "DEG_Kelch_Keap1_1": {
+    "name": "KEAP1 binding degron",
+    "desc": "http://elm.eu.org/elms/DEG_Kelch_Keap1_1",
+    "source": "S1"
+  },
+  "DEG_SCF_TRCP1_1": {
+    "name": "SCF ubiquitin ligase binding Phosphodegrons",
+    "desc": "http://elm.eu.org/elms/DEG_SCF_TRCP1_1",
+    "source": "S1"
+  },
+  "DOC_ANK_TNKS_1": {
+    "name": "Tankyrase-binding motif",
+    "desc": "http://elm.eu.org/elms/DOC_ANK_TNKS_1",
+    "source": "S1"
+  },
+  "DOC_CYCLIN_RxL_1": {
+    "name": "Cyclin N-terminal Domain Docking Motifs",
+    "desc": "http://elm.eu.org/elms/DOC_CYCLIN_RxL_1",
+    "source": "S1"
+  },
+  "DOC_MAPK_gen_1": {
+    "name": "MAPK docking motifs",
+    "desc": "http://elm.eu.org/elms/DOC_MAPK_gen_1",
+    "source": "S1"
+  },
+  "DOC_MAPK_JIP1_4": {
+    "name": "MAPK docking motifs",
+    "desc": "http://elm.eu.org/elms/DOC_MAPK_JIP1_4",
+    "source": "S1"
+  },
+  "DOC_MAPK_MEF2A_6": {
+    "name": "MAPK docking motifs",
+    "desc": "http://elm.eu.org/elms/DOC_MAPK_MEF2A_6",
+    "source": "S1"
+  },
+  "DOC_MAPK_NFAT4_5": {
+    "name": "MAPK docking motifs",
+    "desc": "http://elm.eu.org/elms/DOC_MAPK_NFAT4_5",
+    "source": "S1"
+  },
+  "DOC_PP1_RVXF_1": {
+    "name": "PP1-docking motif RVXF",
+    "desc": "http://elm.eu.org/elms/DOC_PP1_RVXF_1",
+    "source": "S1"
+  },
+  "DOC_PP2A_B56_1": {
+    "name": "PP2A holoenzyme B56-docking site",
+    "desc": "http://elm.eu.org/elms/DOC_PP2A_B56_1",
+    "source": "S1"
+  },
+  "DOC_PP4_FxxP_1": {
+    "name": "PP4 EVH1-binding docking motifs",
+    "desc": "http://elm.eu.org/elms/DOC_PP4_FxxP_1",
+    "source": "S1"
+  },
+  "DOC_WW_Pin1_4": {
+    "name": "WW domain ligands",
+    "desc": "http://elm.eu.org/elms/DOC_WW_Pin1_4",
+    "source": "S1"
+  },
+  "LIG_14-3-3_CanoR_1": {
+    "name": "14-3-3 binding phosphopeptide motif",
+    "desc": "http://elm.eu.org/elms/LIG_14-3-3_CanoR_1",
+    "source": "S1"
+  },
+  "LIG_CaM_IQ_9": {
+    "name": "Helical calmodulin binding motif",
+    "desc": "Helical peptide motif responsible for Ca2+-independent binding of the CaM . The motif is manly characterized by a hydrophobic residue at position 1, a highly conserved Gln at position 2, basic charges at positions 6 and 11, and a variable Gly at position 7",
+    "source": "S1"
+  },
+  "LIG_CtBP_PxDLS_1": {
+    "name": "CtBP ligand motifs",
+    "desc": "http://elm.eu.org/elms/LIG_CtBP_PxDLS_1",
+    "source": "S1"
+  },
+  "LIG_EF_ALG2_ABM_1": {
+    "name": "ALG-2 EF hand ligand",
+    "desc": "http://elm.eu.org/elms/LIG_EF_ALG2_ABM_1",
+    "source": "S1"
+  },
+  "LIG_EH_1": {
+    "name": "EH ligand",
+    "desc": "NPF motif interacting with EH domains, usually during regulation of endocytotic processes",
+    "source": "S1"
+  },
+  "LIG_HCF-1_HBM_1": {
+    "name": "HCF-1 binding motif",
+    "desc": "http://elm.eu.org/elms/LIG_HCF-1_HBM_1",
+    "source": "S1"
+  },
+  "LIG_HOMEOBOX": {
+    "name": "Homeodomain ligand",
+    "desc": "http://elm.eu.org/elms/LIG_HOMEOBOX",
+    "source": "S1"
+  },
+  "LIG_KEPE_2": {
+    "name": "Sumoylation site",
+    "desc": "http://elm.eu.org/elms/LIG_KEPE_2",
+    "source": "S1"
+  },
+  "LIG_KLC1_WD_1": {
+    "name": "Motifs binding the TPR domain of kinesin light chain 1",
+    "desc": "http://elm.eu.org/elms/LIG_KLC1_WD_1",
+    "source": "S1"
+  },
+  "LIG_LIR_Gen_1": {
+    "name": "Atg8 protein family ligands",
+    "desc": "Canonical LIR motif that binds to Atg8 protein family members to mediate processes involved in autophagy.",
+    "source": "S1"
+  },
+  "LIG_PAM2_1": {
+    "name": "PAM2 motif",
+    "desc": "http://elm.eu.org/elms/LIG_PAM2_1",
+    "source": "S1"
+  },
+  "LIG_PCNA_PIPBox_1": {
+    "name": "PCNA binding PIP box",
+    "desc": "The PCNA binding PIP box  motif is found in proteins involved in DNA replication, repair and cell cycle control.",
+    "source": "S1"
+  },
+  "LIG_PDZ_Class_1": {
+    "name": "PDZ domain ligands",
+    "desc": "http://elm.eu.org/elms/LIG_PDZ_Class_1",
+    "source": "S1"
+  },
+  "LIG_PDZ_Wminus1_1": {
+    "name": "PDZ domain ligands",
+    "desc": "http://elm.eu.org/elms/LIG_PDZ_Wminus1_1",
+    "source": "S1"
+  },
+  "LIG_PTAP_UEV_1": {
+    "name": "UEV Domain binding PTAP motif",
+    "desc": "http://elm.eu.org/elms/LIG_PTAP_UEV_1",
+    "source": "S1"
+  },
+  "LIG_PTB_Apo_2": {
+    "name": "PTB ligand",
+    "desc": "http://elm.eu.org/elms/LIG_PTB_Apo_2",
+    "source": "S1"
+  },
+  "LIG_PTB_Phospho_1": {
+    "name": "PTB ligand",
+    "desc": "http://elm.eu.org/elms/LIG_PTB_Phospho_1",
+    "source": "S1"
+  },
+  "LIG_Rb_LxCxE_1": {
+    "name": "Pocket protein B Subdomain ligands",
+    "desc": "http://elm.eu.org/elms/LIG_RB_LxCxE_1",
+    "source": "S1"
+  },
+  "LIG_SH2_CRK": {
+    "name": "Phosphotyrosine ligands bound by SH2 domains",
+    "desc": "http://elm.eu.org/elms/LIG_SH2_CRK",
+    "source": "S1"
+  },
+  "LIG_SH2_GRB2like": {
+    "name": "Phosphotyrosine ligands bound by SH2 domains",
+    "desc": "http://elm.eu.org/elms/LIG_SH2_GRB2like",
+    "source": "S1"
+  },
+  "LIG_SH2_NCK_1": {
+    "name": "Phosphotyrosine ligands bound by SH2 domains",
+    "desc": "http://elm.eu.org/elms/LIG_SH2_NCK_1",
+    "source": "S1"
+  },
+  "LIG_SH2_SRC": {
+    "name": "Phosphotyrosine ligands bound by SH2 domains",
+    "desc": "http://elm.eu.org/elms/LIG_SH2_SRC",
+    "source": "S1"
+  },
+  "LIG_SH2_STAP1": {
+    "name": "Phosphotyrosine ligands bound by SH2 domains",
+    "desc": "http://elm.eu.org/elms/LIG_SH2_STAP1",
+    "source": "S1"
+  },
+  "LIG_SH2_STAT5": {
+    "name": "Phosphotyrosine ligands bound by SH2 domains",
+    "desc": "http://elm.eu.org/elms/LIG_SH2_STAT5",
+    "source": "S1"
+  },
+  "LIG_SH3_2": {
+    "name": "SH3 domain ligands",
+    "desc": "http://elm.eu.org/elms/LIG_SH3_2",
+    "source": "S1"
+  },
+  "LIG_SUMO_SIM_anti_2": {
+    "name": "SUMO interaction site",
+    "desc": "http://elm.eu.org/elms/LIG_SUMO_SIM_anti_2",
+    "source": "S1"
+  },
+  "LIG_SUMO_SIM_par_1": {
+    "name": "SUMO interaction site",
+    "desc": "Motif for the parallel beta augmentation mode of non-covalent binding to SUMO protein.",
+    "source": "S1"
+  },
+  "MOD_CDK_SPK_2": {
+    "name": "CDK Phosphorylation Site",
+    "desc": "http://elm.eu.org/elms/MOD_CDK_SPK_2",
+    "source": "S1"
+  },
+  "MOD_CDK_SPxK_1": {
+    "name": "CDK Phosphorylation Site",
+    "desc": "Canonical version of the CDK phosphorylation site which shows specificity towards a lysine/arginine residue at the [ST]+3 position.",
+    "source": "S1"
+  },
+  "MOD_CDK_SPxxK_3": {
+    "name": "CDK Phosphorylation Site",
+    "desc": "http://elm.eu.org/elms/MOD_CDK_SPxxK_3",
+    "source": "S1"
+  },
+  "MOD_CK1_1": {
+    "name": "Casein kinase 1 (CK1) Phosphorylation site",
+    "desc": "http://elm.eu.org/elms/MOD_CK1_1",
+    "source": "S1"
+  },
+  "MOD_CK2_1": {
+    "name": "Casein kinase 2 (CK2) Phosphorylation site",
+    "desc": "http://elm.eu.org/elms/MOD_CK2_1",
+    "source": "S1"
+  },
+  "MOD_DYRK1A_RPxSP_1": {
+    "name": "S/T residue phosphorylated by Arg- and Pro-directed DYRK1A kinase",
+    "desc": "http://elm.eu.org/elms/MOD_DYRK1A_RPxSP_1",
+    "source": "S1"
+  },
+  "MOD_GSK3_1": {
+    "name": "GSK3 phosphorylation site",
+    "desc": "http://elm.eu.org/elms/MOD_GSK3_1",
+    "source": "S1"
+  },
+  "MOD_N-GLC_1": {
+    "name": "N-glycosylation site",
+    "desc": "http://elm.eu.org/elms/MOD_N-GLC_1",
+    "source": "S1"
+  },
+  "MOD_NMyristoyl": {
+    "name": "N-myristoylation site",
+    "desc": "http://elm.eu.org/elms/MOD_NMyristoyl",
+    "source": "S1"
+  },
+  "MOD_PIKK_1": {
+    "name": "PIKK phosphorylation site",
+    "desc": "http://elm.eu.org/elms/MOD_PIKK_1",
+    "source": "S1"
+  },
+  "MOD_PKA_1": {
+    "name": "PKA Phosphorylation site",
+    "desc": "http://elm.eu.org/elms/MOD_PKA_1",
+    "source": "S1"
+  },
+  "MOD_PKA_2": {
+    "name": "PKA Phosphorylation site",
+    "desc": "http://elm.eu.org/elms/MOD_PKA_2",
+    "source": "S1"
+  },
+  "MOD_PKB_1": {
+    "name": "PKB Phosphorylation site",
+    "desc": "http://elm.eu.org/elms/MOD_PKB_1",
+    "source": "S1"
+  },
+  "MOD_Plk_1": {
+    "name": "Polo-like kinase phosphosites",
+    "desc": "http://elm.eu.org/elms/MOD_Plk_1",
+    "source": "S1"
+  },
+  "MOD_ProDKin_1": {
+    "name": "MAPK Phosphorylation Site",
+    "desc": "http://elm.eu.org/elms/MOD_ProDKin_1",
+    "source": "S1"
+  },
+  "MOD_SUMO_for_1": {
+    "name": "Sumoylation site",
+    "desc": "Motif recognised for modification by SUMO-1",
+    "source": "S1"
+  },
+  "MOD_SUMO_rev_2": {
+    "name": "Sumoylation site",
+    "desc": "http://elm.eu.org/elms/MOD_SUMO_rev_2",
+    "source": "S1"
+  },
+  "TRG_ER_diArg_1": {
+    "name": "di Arginine retention/retrieving signal",
+    "desc": "http://elm.eu.org/elms/TRG_ER_diArg_1",
+    "source": "S1"
+  },
+  "TRG_ER_FFAT_1": {
+    "name": "FFAT motif",
+    "desc": "VAP-A/Scs2 MSP-domain binding FFAT (diphenylalanine [FF] in an Acidic Tract) motif",
+    "source": "S1"
+  },
+  "TRG_LysEnd_APsAcLL_1": {
+    "name": "Trans-Golgi Network-Endosome-Lysosome-sorting signals",
+    "desc": "http://elm.eu.org/elms/candidates.html#TRG_LysEnd_APsAcLL_2",
+    "source": "S1"
+  },
+  "TRG_NES_CRM1_1": {
+    "name": "NES Nuclear Export Signals",
+    "desc": "http://elm.eu.org/elms/TRG_NES_CRM1_1",
+    "source": "S1"
+  },
+  "TRG_NLS_MonoExtN_4": {
+    "name": "NLS classical Nuclear Localization Signals",
+    "desc": "Monopartite variant of the classical basically charged NLS. N-extended version.",
+    "source": "S1"
+  },
+  "A_homorep": {
+    "name": "A homorepeat",
+    "desc": "Per residue fraction of 5 or more A in a row",
+    "source": "S1"
+  },
+  "C_homorep": {
+    "name": "C homorepeat",
+    "desc": "Per residue fraction of 5 or more C in a row",
+    "source": "S1"
+  },
+  "D_homorep": {
+    "name": "D homorepeat",
+    "desc": "Per residue fraction of 5 or more D in a row",
+    "source": "S1"
+  },
+  "E_homorep": {
+    "name": "E homorepeat",
+    "desc": "Per residue fraction of 5 or more E in a row",
+    "source": "S1"
+  },
+  "G_homorep": {
+    "name": "G homorepeat",
+    "desc": "Per residue fraction of 5 or more G in a row",
+    "source": "S1"
+  },
+  "H_homorep": {
+    "name": "H homorepeat",
+    "desc": "Per residue fraction of  5 or more H in a row",
+    "source": "S1"
+  },
+  "I_homorep": {
+    "name": "I homorepeat",
+    "desc": "Per residue fraction of  5 or more I in a row",
+    "source": "S1"
+  },
+  "K_homorep": {
+    "name": "K homorepeat",
+    "desc": "Per residue fraction of  5 or more K in a row",
+    "source": "S1"
+  },
+  "L_homorep": {
+    "name": "L homorepeat",
+    "desc": "Per residue fraction of  5 or more L in a row",
+    "source": "S1"
+  },
+  "M_homorep": {
+    "name": "M homorepeat",
+    "desc": "Per residue fraction of  5 or more M in a row",
+    "source": "S1"
+  },
+  "N_homorep": {
+    "name": "N homorepeat",
+    "desc": "Per residue fraction of  5 or more N in a row",
+    "source": "S1"
+  },
+  "P_homorep": {
+    "name": "P homorepeat",
+    "desc": "Per residue fraction of  5 or more P in a row",
+    "source": "S1"
+  },
+  "Q_homorep": {
+    "name": "Q homorepeat",
+    "desc": "Per residue fraction of  5 or more Q in a row",
+    "source": "S1"
+  },
+  "R_homorep": {
+    "name": "R homorepeat",
+    "desc": "Per residue fraction of  5 or more R in a row",
+    "source": "S1"
+  },
+  "S_homorep": {
+    "name": "S homorepeat",
+    "desc": "Per residue fraction of  5 or more S in a row",
+    "source": "S1"
+  },
+  "T_homorep": {
+    "name": "T homorepeat",
+    "desc": "Per residue fraction of  5 or more T in a row",
+    "source": "S1"
+  },
+  "V_homorep": {
+    "name": "V homorepeat",
+    "desc": "Per residue fraction of  5 or more V in a row",
+    "source": "S1"
+  },
+  "Y_homorep": {
+    "name": "Y homorepeat",
+    "desc": "Per residue fraction of  5 or more Y in a row",
+    "source": "S1"
+  },
+  "FG_rich": {
+    "name": "FG nucleoporin motif",
+    "desc": "Similar to FG motif by Zarin et al. 2019",
+    "source": "S1"
+  },
+  "PY": {
+    "name": "PY-NLS",
+    "desc": "Non-clasical (PY) nuclear localization signal/motif",
+    "source": "S1"
+  },
+  "FRG": {
+    "name": "Glycine motif",
+    "desc": "Glycine rich motif",
+    "source": "S1"
+  },
+  "SGFYSG": {
+    "name": "Glycine motif",
+    "desc": "Serine,glycine, aromatic rich motif, similar to LARKS",
+    "source": "S1"
+  },
+  "PG_rich": {
+    "name": "Proline, glycine rich motif",
+    "desc": "Glycine proline motif",
+    "source": "S1"
+  },
+  "ELASTIN_LIKE": {
+    "name": "Glycine motif",
+    "desc": "Pentapeptide motif (VPG(X)G) derived from hydrophobic domain of tropoelastine, used in repeats for artificial elastin-like polypeptides.",
+    "source": "S1"
+  },
+  "FGxF": {
+    "name": "FG motif",
+    "desc": "FG motif",
+    "source": "S1"
+  },
+  "R_plus_Y": {
+    "name": "R+Y content",
+    "desc": "Fraction of R and Y residues in the sequence (normalized by sequence length)",
+    "source": "S1"
+  },
+  "REP_RGG": {
+    "name": "RGG repeat",
+    "desc": "Motif defined by R followed by exactly 2 glycines \"RGG\". This is distinct from a more generically defined 'glycine, arginine'=rich motif \"RG\", which is also computed and part of the full feature set.",
+    "source": "S1"
+  },
+  "AA_S": {
+    "name": "S content",
+    "desc": "Fraction of S residues",
+    "source": "S1"
+  },
+  "AA_P": {
+    "name": "P content",
+    "desc": "Fraction of P residues",
+    "source": "S1"
+  },
+  "AA_T": {
+    "name": "T content",
+    "desc": "Fraction of T residues",
+    "source": "S1"
+  },
+  "AA_A": {
+    "name": "A content",
+    "desc": "Fraction of A residues",
+    "source": "S1"
+  },
+  "AA_H": {
+    "name": "H content",
+    "desc": "Fraction of H residues",
+    "source": "S1"
+  },
+  "AA_Q": {
+    "name": "Q content",
+    "desc": "Fraction of Q residues",
+    "source": "S1"
+  },
+  "AA_N": {
+    "name": "N content",
+    "desc": "Fraction of N residues",
+    "source": "S1"
+  },
+  "AA_G": {
+    "name": "G content",
+    "desc": "Fraction of G residues",
+    "source": "S1"
+  },
+  "AA_R": {
+    "name": "R content",
+    "desc": "Per residue fraction of R residues",
+    "source": "S1"
+  },
+  "AA_C": {
+    "name": "C content",
+    "desc": "Per residue fraction of C residues",
+    "source": "S1"
+  },
+  "AA_D": {
+    "name": "P content",
+    "desc": "Per residue fraction of D residues",
+    "source": "S1"
+  },
+  "AA_E": {
+    "name": "E content",
+    "desc": "Per residue fraction of E residues",
+    "source": "S1"
+  },
+  "AA_F": {
+    "name": "F content",
+    "desc": "Per residue fraction of F residues",
+    "source": "S1"
+  },
+  "AA_I": {
+    "name": "I content",
+    "desc": "Per residue fraction of I residues",
+    "source": "S1"
+  },
+  "AA_K": {
+    "name": "K content",
+    "desc": "Per residue fraction of K residues",
+    "source": "S1"
+  },
+  "AA_L": {
+    "name": "L content",
+    "desc": "Per residue fraction of L residues",
+    "source": "S1"
+  },
+  "AA_M": {
+    "name": "M content",
+    "desc": "Per residue fractionn of M residues",
+    "source": "S1"
+  },
+  "AA_V": {
+    "name": "V content",
+    "desc": "Per residue fractionn of V residues",
+    "source": "S1"
+  },
+  "AA_W": {
+    "name": "W content",
+    "desc": "Per residue fraction of W residues",
+    "source": "S1"
+  },
+  "AA_Y": {
+    "name": "Y content",
+    "desc": "Per residue fraction of Y residues",
+    "source": "S1"
+  },
+  "acidic": {
+    "name": "Acidic residue content",
+    "desc": "",
+    "source": "S1"
+  },
+  "basic": {
+    "name": "Basic residue content",
+    "desc": "",
+    "source": "S1"
+  },
+  "aliphatic": {
+    "name": "Aliphatic residue content",
+    "desc": "",
+    "source": "S1"
+  },
+  "polar_fraction": {
+    "name": "Polar residue content",
+    "desc": "",
+    "source": "S1"
+  },
+  "chain_expanding": {
+    "name": "Chain expanding residue content",
+    "desc": "",
+    "source": "S1"
+  },
+  "aromatic": {
+    "name": "Aromatic residue content",
+    "desc": "",
+    "source": "S1"
+  },
+  "disorder_promoting": {
+    "name": "Disorder promoting residue content",
+    "desc": "",
+    "source": "S1"
+  }
+}

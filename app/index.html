@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAIDR — IDR feature signature</title>
+<style>
+  html { scrollbar-gutter: stable; }
+  /* Palette from the dataviz reference, validated on both surfaces.
+     Diverging poles: enriched = red (--pos), depleted = blue (--neg). */
+  :root {
+    --surface: #fcfcfb; --panel: #f4f3f0; --border: #e0dfdb;
+    --ink: #0b0b0b; --ink-2: #52514e; --axis: #d5d4d0;
+    --pos: #e34948; --neg: #2a78d6; --accent: #256abf;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #1a1a19; --panel: #242422; --border: #383835;
+      --ink: #ffffff; --ink-2: #c3c2b7; --axis: #383835;
+      --pos: #e66767; --neg: #3987e5; --accent: #3987e5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 20px 64px; }
+  h1 { font-size: 1.3rem; margin: 0 0 4px; }
+  .sub { color: var(--ink-2); margin: 0 0 24px; }
+  .panel { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 20px; }
+  label { display: block; font-weight: 600; margin-bottom: 6px; }
+  textarea { width: 100%; min-height: 96px; resize: vertical; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 6px; background: var(--surface);
+    color: var(--ink); font: 13px/1.4 ui-monospace, monospace; }
+  select { width: 100%; padding: 7px 10px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  button { font: inherit; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px;
+    cursor: pointer; }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  button:disabled:hover { border-color: var(--border); color: var(--ink); }
+  .step { padding: 6px 10px; font-weight: 600; line-height: 1; }
+  input[type=range] { flex: 1; min-width: 220px; accent-color: var(--accent); }
+  .readout { color: var(--ink-2); font-size: 13px; margin-top: 8px; }
+  .readout b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  #feature-count { cursor: text; border-bottom: 1px dashed var(--axis); outline: none; }
+  #feature-count:hover { border-bottom-color: var(--ink-2); }
+  #feature-count:focus { border-bottom-color: var(--accent); }
+  #status { color: var(--ink-2); font-size: 13px; margin: 4px 0 16px; }
+  #chart { margin-top: 8px; }
+  #chart .feat { fill: var(--ink); font-size: 12px; }
+  #chart .val  { fill: var(--ink-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+  #chart .pos  { fill: var(--pos); }
+  #chart .neg  { fill: var(--neg); }
+  #chart .axis { stroke: var(--axis); stroke-width: 1; }
+  #chart .empty { color: var(--ink-2); }
+  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--ink-2); margin: 4px 0 12px; }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px;
+    border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+  .legend .p::before { background: var(--pos); }
+  .legend .n::before { background: var(--neg); }
+</style>
+</head>
+<body>
+<main>
+  <h1>IDR feature signature</h1>
+  <p class="sub">Retrains a lasso-penalised logistic model on IDR evolutionary signatures, in your browser.</p>
+
+  <div class="panel">
+    <div id="go-row">
+      <label for="go-select">Benchmark set (GO term)</label>
+      <select id="go-select"><option value="">— none (paste your own below) —</option></select>
+    </div>
+    <label for="positives" style="margin-top: 14px">Or a custom positive set (one IDR id or protein prefix per line)</label>
+    <textarea id="positives" placeholder="Q5VUJ6&#10;P07305_IDR_1_97&#10;..."></textarea>
+    <p id="status"></p>
+
+    <label for="features">Number of features</label>
+    <div class="row">
+      <button id="feat-dec" class="step" type="button" aria-label="Fewer features">−</button>
+      <input id="features" type="range" min="0" max="0" value="0" step="1">
+      <button id="feat-inc" class="step" type="button" aria-label="More features">+</button>
+    </div>
+    <p class="readout"><b id="feature-count" contenteditable="true" spellcheck="false" title="Click to type an exact feature count">0</b> features selected · λ ≈ <b id="lambda-value">—</b></p>
+  </div>
+
+  <div class="legend">
+    <span class="p">enriched (+z)</span>
+    <span class="n">depleted (−z)</span>
+  </div>
+  <div id="chart"></div>
+</main>
+
+<script type="module">
+  import { loadFromFiles, loadGoFromFiles } from "./proteome.js";
+  import { startApp } from "./ui.js";
+  const status = document.getElementById("status");
+  status.textContent = "Loading proteome…";
+  try {
+    const proteome = await loadFromFiles(".");
+    let go = null;
+    try { go = await loadGoFromFiles("."); } catch { /* GO sets optional */ }
+    startApp(proteome, go);
+  } catch (e) {
+    status.textContent = "Failed to load data — run `node app/prep-data.js` first, and serve over http.";
+    console.error(e);
+  }
+</script>
+</body>
+</html>
