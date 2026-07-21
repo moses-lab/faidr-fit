@@ -32,3 +32,10 @@ export function assertAllFinite(arr, msg = "") {
     assert.ok(Number.isFinite(arr[i]), `${msg} non-finite at index ${i}: ${arr[i]}`);
   }
 }
+
+export function assertVectorClose(actual, expected, tol, label) {
+  assert.equal(actual.length, expected.length, `${label} length`);
+  for (let i = 0; i < actual.length; i++) {
+    assertClose(actual[i], expected[i], tol, `${label} ${i}:`);
+  }
+}

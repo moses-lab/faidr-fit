@@ -5,6 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "pregen:predict": "node ./scripts/generate-predict-oracles.mjs"
   }
 }

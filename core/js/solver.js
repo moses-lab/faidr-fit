@@ -6,6 +6,26 @@ const PMIN = 1e-5, PMAX = 1 - 1e-5, WMIN = 1e-5;
 
 const soft = (a, t) => (a > t ? a - t : a < -t ? a + t : 0);
 
+function sigmoid(x) {
+  if (x >= 0) { const z = Math.exp(-x); return 1 / (1 + z); }
+  const z = Math.exp(x); return z / (1 + z);
+}
+
+// Predict from fitted coefficients on any matrix with the same feature order
+// used during fitting. `type: "link"` returns the linear predictor; the default
+// returns response-scale probabilities via a stable sigmoid.
+export function predictLogistic(X, beta0, beta, opts = {}) {
+  const { type = "response" } = opts;
+  const n = X.n, p = X.p;
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    let e = beta0;
+    for (let j = 0; j < p; j++) e += X.cols[j][i] * beta[j];
+    out[i] = type === "link" ? e : sigmoid(e);
+  }
+  return out;
+}
+
 // Standardize each column to mean 0, population sd 1 (glmnet's 1/n convention).
 // Constant columns become all-zero and are skipped by the solver.
 function standardize(cols, n) {

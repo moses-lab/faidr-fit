@@ -1,0 +1,18 @@
+{
+  "version": 7,
+  "cases": {
+    "eb21cc88947d5e6890e437cf671d13b965632d61f2eb126971c3f2e26afa4271": {
+      "env": {
+        "X": [[1,0,2],[0,1,1],[2,1,0],[-1,0.5,1.5]],
+        "y": [1,0,1,0],
+        "lambda": 0.01
+      },
+      "r": "\nfit <- glmnet(X, y, family = \"binomial\", alpha = 1, lambda = lambda)\nlist(\n  beta = as.numeric(coef(fit)),\n  link = as.numeric(predict(fit, newx = X, type = \"link\")),\n  response = as.numeric(predict(fit, newx = X, type = \"response\"))\n)\n",
+      "value": {
+        "beta": [-0.012362325382941464,4.0069775179725955,-3.5757256868787906,0],
+        "link": [3.994615192589654,-3.588088012261732,4.425867023683459,-5.807202686794932],
+        "response": [0.9819184324916056,0.02690713537256025,0.9881776072672622,0.0029968186442974206]
+      }
+    }
+  }
+}
