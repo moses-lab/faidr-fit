@@ -4,9 +4,29 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fitLassoLogistic, lambdaMax } from "../js/solver.js";
-import { logit, mean } from "./helpers.js";
+import { logit, mean, matrixFromRows } from "./helpers.js";
 import { assertClose } from "./assertions.js";
 import { rng, makeNondegenerate } from "./datagen.js";
+import { evaluatedInR } from "../test-support/r-oracle.js";
+
+test("lambdaMax matches glmnet's own path-starting λ (fit$lambda[1])", () => {
+  // R-ORACLE-TAG-START
+  const env = {
+    X: [[1.0, -1.0], [2.0, 0.5], [0.0, 3.0], [-1.0, 0.5]],
+    y: [1, 0, 1, 0],  // Note: glmnet needs at least 2 of each class to avoid a degenerate fit
+  };
+  const r = String.raw`
+fit <- glmnet(X, y, family = "binomial", alpha = 1)
+list(lambdaMax = fit$lambda[1])
+`;
+  // R-ORACLE-TAG-END
+
+  const X = matrixFromRows(env.X);
+  const y = new Float64Array(env.y);
+  const { lambdaMax: lm } = lambdaMax(X, y);
+  const expected = evaluatedInR(r, env);
+  assertClose(lm, expected.lambdaMax, 1e-12, "lambdaMax vs glmnet path start:");
+});
 
 test("λ ≥ λ_max ⇒ all coefficients exactly zero, β0 = logit(ȳ)", () => {
   const rand = rng(101);

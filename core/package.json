@@ -6,6 +6,6 @@
   "private": true,
   "scripts": {
     "test": "node --test",
-    "pregen:predict": "node ./scripts/generate-predict-oracles.mjs"
+    "pregen:oracles": "node ./scripts/generate-oracles.mjs"
   }
 }

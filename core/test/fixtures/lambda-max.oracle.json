@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "cases": {
+    "17b086d338800adcabfea0637bf369e7419e46b6d3b6e6b0a0518ca561ec28b2": {
+      "env": {
+        "X": [[1,-1],[2,0.5],[0,3],[-1,0.5]],
+        "y": [1,0,1,0]
+      },
+      "r": "\nfit <- glmnet(X, y, family = \"binomial\", alpha = 1)\nlist(lambdaMax = fit$lambda[1])\n",
+      "value": {
+        "lambdaMax": 0.0870388279778489
+      }
+    }
+  }
+}

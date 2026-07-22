@@ -1,16 +1,21 @@
 #!/usr/bin/env node
+// Walks every test/*.test.js file, extracts its R-ORACLE-TAG-START/END blocks,
+// evaluates each in R (via glmnet/jsonlite), and writes one fixture per source
+// file to test/fixtures/<name>.oracle.json. Safe to re-run: existing values are
+// recomputed fresh each time (no incremental caching), so this is a from-scratch
+// rebuild, not a diff.
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { oracleKey } from "../test-support/r-oracle.js";
 
+const FIXTURE_VERSION = 1;
+
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const testDir = resolve(rootDir, "test");
-
-const tagStart = /\/\/ R-ORACLE-TAG-START\s*\n/g;
-const tagEnd = /\n\s*\/\/ R-ORACLE-TAG-END/g;
+const fixturesDir = resolve(testDir, "fixtures");
 
 async function walk(dirPath, results = []) {
   for (const entry of await readdir(dirPath, { withFileTypes: true })) {
@@ -18,35 +23,39 @@ async function walk(dirPath, results = []) {
     if (entry.isDirectory()) {
       if (entry.name === "fixtures") continue;
       await walk(full, results);
-    } else if (entry.isFile() && full.endsWith(".js")) {
+    } else if (entry.isFile() && full.endsWith(".test.js")) {
       results.push(full);
     }
   }
   return results;
 }
 
-const script = String.raw`
+// Runs inside Rscript: reads {r, env} from a JSON spec file, evaluates r in an
+// environment built from env, and prints the result back out as JSON.
+const rScript = String.raw`
 suppressPackageStartupMessages({library(glmnet); library(jsonlite)})
 
-spec <- fromJSON(commandArgs(trailingOnly = TRUE)[1], simplifyVector = T)
+spec <- fromJSON(commandArgs(trailingOnly = TRUE)[1], simplifyVector = TRUE)
 value <- eval(parse(text = spec$r), envir = spec$env)
 cat(toJSON(value, auto_unbox = TRUE, digits = 17))
 `;
 
 async function runCase(spec) {
-  const dir = await mkdtemp(resolve(tmpdir(), "faidr-predict-oracle-"));
+  const dir = await mkdtemp(resolve(tmpdir(), "faidr-oracle-"));
   const specFile = resolve(dir, "spec.json");
   await writeFile(specFile, JSON.stringify(spec));
-  const child = spawnSync("Rscript", ["-e", script, specFile], { encoding: "utf8" });
+  const child = spawnSync("Rscript", ["-e", rScript, specFile], { encoding: "utf8" });
   if (child.status !== 0) {
-    throw new Error(
-      `R oracle generation failed for ${spec.id}: ${child.stderr || child.stdout}`,
-    );
+    throw new Error(`R oracle generation failed for ${spec.id}: ${child.stderr || child.stdout}`);
   }
   return JSON.parse(child.stdout);
 }
 
-function extractTaggedCases(source, filePath) {
+// Pulls out every R-ORACLE-TAG block. A block is self-contained JS (only
+// literals/inline helpers, no references to outer-scope variables, since it's
+// re-evaluated standalone here, independent of the test) that defines:
+//   const env = {...}; const r = `...`;
+function extractTaggedCases(source) {
   const cases = [];
   const matches = source.matchAll(/\/\/ R-ORACLE-TAG-START\s*\n([\s\S]*?)\n\s*\/\/ R-ORACLE-TAG-END/g);
   for (const match of matches) {
@@ -77,28 +86,35 @@ function formatObject(value, indent) {
   return lines.join("\n");
 }
 
-function formatFixture(oracles) {
-  return formatObject(oracles, "");
-}
-
 const files = await walk(testDir);
-const oracles = { version: 7, cases: {} };
+await mkdir(fixturesDir, { recursive: true });
+
+let totalCases = 0;
+let filesWritten = 0;
 
 for (const filePath of files) {
   const source = await readFile(filePath, "utf8");
-  const cases = extractTaggedCases(source, filePath);
-  for (const spec of cases) {
+  const specs = extractTaggedCases(source);
+  if (specs.length === 0) continue;
+
+  const name = basename(filePath).replace(/\.test\.js$/, "");
+  const outFile = resolve(fixturesDir, `${name}.oracle.json`);
+  const oracles = { version: FIXTURE_VERSION, cases: {} };
+
+  for (const spec of specs) {
     const key = oracleKey(spec.r, spec.env);
+    if (oracles.cases[key]) continue; // already computed for this file
     oracles.cases[key] = {
       env: spec.env,
       r: spec.r,
-      value: await runCase({ env: spec.env, r: spec.r, id: key }),
+      value: await runCase({ env: spec.env, r: spec.r, id: `${name}:${key}` }),
     };
+    totalCases++;
   }
+
+  await writeFile(outFile, `${formatObject(oracles, "")}\n`);
+  console.log(`wrote ${outFile} (${specs.length} case${specs.length === 1 ? "" : "s"})`);
+  filesWritten++;
 }
 
-const outFile = resolve(dirname(fileURLToPath(import.meta.url)), "../test/fixtures/predict-oracles.json");
-await mkdir(dirname(outFile), { recursive: true });
-await writeFile(outFile, `${formatFixture(oracles)}\n`);
-
-console.log(`wrote ${outFile}`);
+console.log(`done: ${totalCases} case(s) across ${filesWritten} fixture file(s)`);

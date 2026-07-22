@@ -7,8 +7,7 @@ import {
   sigmoid, log1pexp, matrixFromRows, colStats, meanNLL, objective,
   eta, kktViolation, logit,
 } from "./helpers.js";
-import { lambdaMax } from "../js/solver.js";
-import { assertClose } from "./assertions.js";
+import { assertClose, assertVectorClose } from "./assertions.js";
 
 const rows = [[1.0, -1.0], [2.0, 0.5], [0.0, 3.0]];
 const y = new Float64Array([1, 0, 1]);
@@ -27,13 +26,13 @@ test("log1pexp matches naive log(1+e^x) in the safe range", () => {
 
 test("colStats gives population mean and sd", () => {
   const { mean, sd } = colStats(X);
-  assertClose(mean[0], 1.0, 1e-15); assertClose(mean[1], 0.8333333333333334, 1e-12);
-  assertClose(sd[0], 0.816496580927726, 1e-12); assertClose(sd[1], 1.6499158227686108, 1e-12);
+  assertVectorClose(mean, [1.0, 0.8333333333333334], 1e-12);
+  assertVectorClose(sd, [0.816496580927726, 1.6499158227686108], 1e-12);
 });
 
 test("eta and meanNLL match hand computation", () => {
   const e = eta(X, beta0, beta);
-  assert.deepEqual([...e], [1.0, 1.05, -0.7]);
+  assertVectorClose(e, [1.0, 1.05, -0.7], 1e-12);
   assertClose(meanNLL(e, y), 0.9221687386737747, 1e-12);
 });
 
@@ -61,15 +60,6 @@ test("kktViolation coord correlations match hand computation", () => {
   const w = kktViolation(X, y, beta0, beta, lambda);
   // worst active violation = max(|c0 - 0|, |c1 - 0|) since sign·λ=0
   assertClose(w.viol, 0.5752066019061658, 1e-12);
-});
-
-test("shipped lambdaMax: pinned value and argmax on the 3×2 example", () => {
-  // Closed form maxⱼ |(1/n) x̃ⱼᵀ(y-ȳ)|. Independently hand-computed: column 0 has
-  // the stronger null-residual correlation (0.4082…) vs column 1 (0.0673…), so it
-  // is both the max and the coordinate that enters first below λ_max.
-  const { lambdaMax: lm, argmax } = lambdaMax(X, y);
-  assertClose(lm, 0.408248290463863, 1e-12);
-  assert.equal(argmax, 0);
 });
 
 test("logit is the inverse of sigmoid", () => {
