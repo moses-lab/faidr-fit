@@ -1,11 +1,9 @@
 {
-  "name": "faidr-core",
-  "version": "0.0.0",
-  "description": "FAIDR numerical kernel: lasso-penalised logistic regression + refit",
+  "name": "faidr-lasso",
   "type": "module",
   "private": true,
   "scripts": {
     "test": "node --test",
-    "pregen:oracles": "node ./scripts/generate-oracles.mjs"
+    "pregen:oracles": "node ./scripts/generate-oracles.js"
   }
 }

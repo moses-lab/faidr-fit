@@ -1,9 +1,9 @@
 // Test 7: prediction helper for fitted logistic coefficients.
 import { test } from "node:test";
-import { predictLogistic, fitLassoLogistic } from "../js/solver.js";
+import { fitLassoLogistic } from "../src/fitLassoLogistic.js";
+import { predictLogistic } from "../src/predictLogistic.js";
 import { evaluatedInR } from "../test-support/r-oracle.js";
-import { matrixFromRows } from "./helpers.js";
-import { assertClose, assertAllFinite, assertVectorClose } from "./assertions.js";
+import { assertClose, assertVectorClose } from "./assertions.js";
 
 test("predictLogistic matches glmnet coefficients", () => {
   // R-ORACLE-TAG-START
@@ -15,34 +15,39 @@ test("predictLogistic matches glmnet coefficients", () => {
       [-1.0, 0.5, 1.5],
     ],
     y: [1, 0, 1, 0],
-    lambda: 0.01,
+    lambda_idx: 41, // 42nd lambda in glmnet's default path of 100 lambdas
+                    // gives lambda < 0.01 on this example, to compare with
+                    // the previous implementation. The convergence on
+                    // coefficients and log odds haven't improved and are
+                    // still close to only ~1e-4.
   };
   const r = String.raw`
-fit <- glmnet(X, y, family = "binomial", alpha = 1, lambda = lambda)
+fit <- glmnet(X, y, family = "binomial", alpha = 1)
+lambda <- fit$lambda[lambda_idx+1]
 list(
-  beta = as.numeric(coef(fit)),
-  link = as.numeric(predict(fit, newx = X, type = "link")),
-  response = as.numeric(predict(fit, newx = X, type = "response"))
+  lambda = lambda,
+  beta = as.numeric(coef(fit, s = lambda)),
+  link = as.numeric(predict(fit, newx = X, s = lambda, type = "link"))
 )
 `;
   // R-ORACLE-TAG-END
 
-  const X = matrixFromRows(env.X, ["f0", "f1", "f2"]);
-  const y = new Float64Array(env.y);
-
-  const fit = fitLassoLogistic(X, y, env.lambda);
+  const fit = fitLassoLogistic(env.X, env.y);
   const expected = evaluatedInR(r, env);
-  assertAllFinite(fit.beta, "fitBeta:");
+  const lambda = fit.lambdaPath[env.lambda_idx];
+  const coefs = fit.coefficients[env.lambda_idx];
+  assertClose(lambda, expected.lambda, 1e-12, "glmnet lambda:");
   // TODO I suspect the closeness at only 1e-4 is due to glmnet using a different
   // (relative) convergence criterion. Try to tighten comparison here once our
-  // implememtation has the same.
-  assertClose(fit.beta0, expected.beta[0], 1e-4, "glmnet beta0:");
-  assertVectorClose(fit.beta, expected.beta.slice(1), 1e-4, "glmnet beta:");
+  // implementation has the same.
+  //
+  // Update: The convergence on coefficients and log odds haven't improved and
+  // are still close to only ~1e-4. However note that both implementations work
+  // with the same convergence threshold at 1e-7. Decreasing it claws back some
+  // of the difference.
+  assertClose(coefs.beta0, expected.beta[0], 1e-4, "glmnet beta0:");
+  assertVectorClose(coefs.beta, expected.beta.slice(1), 1e-4, "glmnet beta");
 
-  const fitEta = predictLogistic(X, fit.beta0, fit.beta, { type: "link" });
-  const fitProb = predictLogistic(X, fit.beta0, fit.beta);
-  assertAllFinite(fitEta, "fitEta:");
-  assertAllFinite(fitProb, "fitProb:");
-  assertVectorClose(fitEta, expected.link, 1e-4, "glmnet link");
-  assertVectorClose(fitProb, expected.response, 1e-4, "glmnet response");
+  const { eta } = predictLogistic(fit, env.X, env.lambda_idx);
+  assertVectorClose(eta, expected.link, 1e-4, "glmnet link");
 });

@@ -1,17 +1,17 @@
 {
   "version": 1,
   "cases": {
-    "eb21cc88947d5e6890e437cf671d13b965632d61f2eb126971c3f2e26afa4271": {
+    "5e2625136bbea770066730496b4062dfd8fc1b668090f950e478bd64c9b02d48": {
       "env": {
         "X": [[1,0,2],[0,1,1],[2,1,0],[-1,0.5,1.5]],
         "y": [1,0,1,0],
-        "lambda": 0.01
+        "lambda_idx": 41
       },
-      "r": "\nfit <- glmnet(X, y, family = \"binomial\", alpha = 1, lambda = lambda)\nlist(\n  beta = as.numeric(coef(fit)),\n  link = as.numeric(predict(fit, newx = X, type = \"link\")),\n  response = as.numeric(predict(fit, newx = X, type = \"response\"))\n)\n",
+      "r": "\nfit <- glmnet(X, y, family = \"binomial\", alpha = 1)\nlambda <- fit$lambda[lambda_idx+1]\nlist(\n  lambda = lambda,\n  beta = as.numeric(coef(fit, s = lambda)),\n  link = as.numeric(predict(fit, newx = X, s = lambda, type = \"link\"))\n)\n",
       "value": {
-        "beta": [-0.012362325382941464,4.0069775179725955,-3.5757256868787906,0],
-        "link": [3.994615192589654,-3.588088012261732,4.425867023683459,-5.807202686794932],
-        "response": [0.9819184324916056,0.02690713537256025,0.9881776072672622,0.0029968186442974206]
+        "lambda": 0.009861644467395236,
+        "beta": [-0.011056819714881483,4.020322732232203,-3.5905990753202257,0],
+        "link": [4.009265912517321,-3.6016558950351074,4.4389895694293,-5.826679089607198]
       }
     }
   }

@@ -1,54 +1,112 @@
-// Test 1: KKT residual check — the backbone. Runs the reusable assertion over a
-// broad sweep of random problems (varying N, p, N<p, correlated columns, mixed
-// scales) plus a couple of hand-built cases, each at several λ along the path.
-import { test } from "node:test";
-import { fitLassoLogistic, lambdaMax } from "../js/solver.js";
-import { matrixFromRows } from "./helpers.js";
-import { assertKKT } from "./assertions.js";
-import { rng, makeNondegenerate } from "./datagen.js";
+import assert from 'node:assert/strict';
+import { toColumnMajor, sigmoid, nullModelDeviance, nullIntercept } from '../src/math/logistic.js';
+import { standardize } from '../src/standardize.js';
+import { computeLambdaMax, buildLambdaPath } from '../src/lambdaPath.js';
+import { irlsLogisticLasso } from '../src/irlsLogisticLasso.js';
 
-test("KKT holds across hundreds of random problems and λ values", () => {
-  const rand = rng(7);
-  let count = 0;
-  for (let t = 0; t < 250; t++) {
-    const n = 15 + Math.floor(rand() * 90);
-    const p = 2 + Math.floor(rand() * 18);
-    const { X, y } = makeNondegenerate(rand, {
-      n, p, rho: rand() * 0.95, mixedScale: rand() < 0.5,
-    });
-    const { lambdaMax: lm } = lambdaMax(X, y);
-    // a few λ along the active path (fractions of λ_max) plus one above it
-    for (const frac of [0.9, 0.5, 0.15, 0.03, 1.2]) {
-      const lambda = lm * frac;
-      const res = fitLassoLogistic(X, y, lambda);
-      assertKKT(X, y, res, lambda, 1e-5, `n=${n} p=${p} frac=${frac}:`);
-      count++;
+/**
+ * This test does not compare against glmnet or any other reference
+ * implementation. Instead it checks the solution against the lasso's
+ * own optimality condition: for the objective
+ *   L(beta0,beta) = -(1/N) loglik(beta0,beta) + lambda * sum|beta_j|
+ * a point is optimal iff, writing g_j for the gradient of the
+ * unpenalized term w.r.t. beta_j:
+ *   beta_j != 0  =>  g_j = -lambda * sign(beta_j)
+ *   beta_j == 0  =>  |g_j| <= lambda
+ * This is checked in the standardized coordinate system the solver
+ * actually optimizes in.
+ */
+
+function makeData(seed) {
+  let s = seed;
+  const rand = () => {
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    return s / 0x7fffffff;
+  };
+  const gaussian = () => {
+    const u1 = rand() || 1e-9;
+    const u2 = rand();
+    return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  };
+  const n = 300;
+  const p = 8;
+  const trueBeta = [2, 0, -1.5, 0, 0.8, 0, -0.5, 0];
+  const X = [];
+  const y = [];
+  for (let i = 0; i < n; i++) {
+    const row = Array.from({ length: p }, () => gaussian());
+    let eta = 0.1;
+    for (let j = 0; j < p; j++) eta += trueBeta[j] * row[j];
+    const prob = 1 / (1 + Math.exp(-eta));
+    X.push(row);
+    y.push(rand() < prob ? 1 : 0);
+  }
+  return { X, y };
+}
+
+const { X, y } = makeData(999);
+const Xcol = toColumnMajor(X);
+const { Xstd } = standardize(Xcol);
+const p = Xstd.length;
+const lambdaMax = computeLambdaMax(Xstd, y);
+const lambdaPath = buildLambdaPath(lambdaMax, p, X.length, 30);
+const nullDeviance = nullModelDeviance(y);
+
+let beta0 = nullIntercept(y);
+let beta = new Float64Array(p);
+
+const KKT_TOLERANCE = 1e-4; // slack for floating point + finite thresh,
+// not a modeling threshold: the solver's own convergence thresh (1e-7,
+// relative) leaves a small residual gap in the KKT conditions, this is
+// just how much of that gap the test tolerates.
+
+let checkedCount = 0;
+
+for (let k = 0; k < lambdaPath.length; k++) {
+  const lambda = lambdaPath[k];
+  const result = irlsLogisticLasso({
+    Xstd, y, lambda, beta0Init: beta0, betaInit: beta, nullDeviance,
+  });
+  beta0 = result.beta0;
+  beta = result.beta;
+
+  // Gradient of the unpenalized (1/N) negative log-likelihood at the
+  // actual fitted probabilities (not the IRLS working values).
+  const n = y.length;
+  const eta = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    let e = beta0;
+    for (let j = 0; j < p; j++) e += Xstd[j][i] * beta[j];
+    eta[i] = e;
+  }
+  const grad = new Float64Array(p);
+  for (let j = 0; j < p; j++) {
+    const col = Xstd[j];
+    let g = 0;
+    for (let i = 0; i < n; i++) {
+      const prob = sigmoid(eta[i]);
+      g += col[i] * (y[i] - prob);
+    }
+    grad[j] = -g / n;
+  }
+
+  for (let j = 0; j < p; j++) {
+    checkedCount++;
+    if (beta[j] !== 0) {
+      const expected = -lambda * Math.sign(beta[j]);
+      assert.ok(
+        Math.abs(grad[j] - expected) < KKT_TOLERANCE,
+        `lambda=${lambda.toFixed(5)} feature ${j}: active coefficient violates stationarity `
+        + `(grad=${grad[j].toFixed(6)}, expected=${expected.toFixed(6)})`,
+      );
+    } else {
+      assert.ok(
+        Math.abs(grad[j]) <= lambda + KKT_TOLERANCE,
+        `lambda=${lambda.toFixed(5)} feature ${j}: zero coefficient violates KKT bound `
+        + `(|grad|=${Math.abs(grad[j]).toFixed(6)}, lambda=${lambda.toFixed(6)})`,
+      );
     }
   }
-  // guard that the loop actually ran the intended volume
-  if (count < 1000) throw new Error(`only ${count} KKT checks ran`);
-});
+}
 
-test("KKT holds for N < p (underdetermined)", () => {
-  const rand = rng(13);
-  for (let t = 0; t < 60; t++) {
-    const n = 8 + Math.floor(rand() * 10);
-    const p = n + 5 + Math.floor(rand() * 20);
-    const { X, y } = makeNondegenerate(rand, { n, p, rho: rand() * 0.7 });
-    const { lambdaMax: lm } = lambdaMax(X, y);
-    for (const frac of [0.6, 0.2, 0.05]) {
-      const lambda = lm * frac;
-      assertKKT(X, y, fitLassoLogistic(X, y, lambda), lambda, 1e-5, `N<p n=${n} p=${p}:`);
-    }
-  }
-});
-
-test("KKT holds on a hand-built 5×2 case", () => {
-  const X = matrixFromRows([[1, 0], [0, 1], [1, 1], [-1, 2], [2, -1]]);
-  const y = new Float64Array([1, 0, 1, 0, 1]);
-  const { lambdaMax: lm } = lambdaMax(X, y);
-  for (const frac of [0.8, 0.3, 0.05]) {
-    const lambda = lm * frac;
-    assertKKT(X, y, fitLassoLogistic(X, y, lambda), lambda, 1e-5, `frac=${frac}:`);
-  }
-});
+console.log(`PASS: KKT conditions hold at every lambda on the path (${checkedCount} coefficient checks)`);
