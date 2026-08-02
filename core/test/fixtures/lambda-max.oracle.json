@@ -1,12 +1,13 @@
 {
   "version": 1,
   "cases": {
-    "842d7cdf0dc9aa785549cbd9db48c4440db01627340f4506f5d36b3f5d2d55a6": {
+    "90c01095de04cc4069429bfd16b1dd100f82e5520c22f3d30e136c9e06c83c91": {
       "env": {
         "X": [[1,-1],[2,0.5],[0,3],[-1,0.5]],
-        "y": [1,0,1,0]
+        "y": [1,0,1,0],
+        "nlambda": 5
       },
-      "r": "\nfit <- glmnet(X, y, family = \"binomial\", alpha = 1, nlambda = 5)\nlist(glmnetPath = fit$lambda)\n",
+      "r": "\nfit <- glmnet(X, y, family = \"binomial\", alpha = 1, nlambda = nlambda)\nlist(glmnetPath = fit$lambda)\n",
       "value": {
         "glmnetPath": [0.08703882797784886,0.008703882797784895,0.0008703882797784896,0.00008703882797784896,0.000008703882797784897]
       }

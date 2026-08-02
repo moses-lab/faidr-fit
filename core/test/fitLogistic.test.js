@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { fitLogistic } from '../src/fitLogistic.js';
 import { predictLogistic } from '../src/predictLogistic.js';
 import { sigmoid } from '../src/math/logistic.js';
+import { t } from '../test-support/util.js';
 
 function makeData(seed) {
   let s = seed;
@@ -31,7 +32,7 @@ function makeData(seed) {
 }
 
 const { X, y } = makeData(42);
-const { beta0, beta, waldZ } = fitLogistic(X, y);
+const { beta0, beta, waldZ } = fitLogistic(t(X), y);
 
 // 1. Unpenalized fit should be an unbiased-ish estimate: recovered
 // coefficients should be in the right ballpark and the right sign.
@@ -68,7 +69,7 @@ console.log(`PASS: waldZ = [${waldZ[0].toFixed(2)}, ${waldZ[1].toFixed(2)}], sig
 // 4. predictLogistic round-trips correctly against a fitLassoLogistic
 // fit shape.
 const fakeFit = { lambdaPath: [0], coefficients: [{ beta0, beta }] };
-const { eta: predEta, lambda: predLambda } = predictLogistic(fakeFit, X.slice(0, 5), 0);
+const { eta: predEta, lambda: predLambda } = predictLogistic(fakeFit, t(X.slice(0, 5)), 0);
 assert.equal(predLambda, 0);
 for (let i = 0; i < 5; i++) {
   const expected = beta0 + X[i][0] * beta[0] + X[i][1] * beta[1];

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { fitLassoLogistic } from '../src/fitLassoLogistic.js';
+import { t } from '../test-support/util.js';
 
 // Synthetic dataset: 200 observations, 6 features. y depends strongly
 // on features 0 and 2, weakly on feature 4, not at all on 1, 3, 5.
@@ -35,7 +36,7 @@ function makeData(seed = 12345) {
 
 const { X, y } = makeData();
 
-const { fit, lambdaPath, df, coefficients } = fitLassoLogistic(X, y, { nlambda: 50 });
+const { lambdaPath, df, coefficients } = fitLassoLogistic(t(X), y, { nlambda: 50 });
 
 // 1. No NaNs/Infs anywhere in the path.
 for (const { beta0, beta } of coefficients) {

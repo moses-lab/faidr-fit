@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { fitLassoLogistic } from '../src/fitLassoLogistic.js';
+import { t } from '../test-support/util.js';
 
 function makeData(seed, p) {
   let s = seed;
@@ -31,7 +32,7 @@ function makeData(seed, p) {
 {
   const { X, y } = makeData(7, 20);
   const dfmax = 4;
-  const { df } = fitLassoLogistic(X, y, { nlambda: 100, dfmax });
+  const { df } = fitLassoLogistic(t(X), y, { nlambda: 100, dfmax });
   const last = df[df.length - 1];
   assert.ok(last >= dfmax, `path should run until dfmax is reached, got final df=${last}`);
   // every df strictly before the last entry must be below dfmax,
@@ -63,7 +64,7 @@ function makeData(seed, p) {
     y.push(x0 > 0 ? (rand() < 0.98 ? 1 : 0) : (rand() < 0.98 ? 0 : 1));
   }
 
-  const { coefficients, df } = fitLassoLogistic(X, y, { nlambda: 40 });
+  const { coefficients, df } = fitLassoLogistic(t(X), y, { nlambda: 40 });
   for (const { beta0, beta } of coefficients) {
     assert.ok(Number.isFinite(beta0), 'beta0 must stay finite under near-separation');
     for (const b of beta) assert.ok(Number.isFinite(b), 'beta must stay finite under near-separation');
@@ -77,7 +78,7 @@ function makeData(seed, p) {
 {
   const { X, y } = makeData(3, 5);
   for (const row of X) row.push(7); // append a constant column
-  const { coefficients } = fitLassoLogistic(X, y, { nlambda: 20 });
+  const { coefficients } = fitLassoLogistic(t(X), y, { nlambda: 20 });
   const last = coefficients[coefficients.length - 1];
   assert.equal(last.beta[5], 0, 'constant column must never get a nonzero coefficient');
   assert.ok(Number.isFinite(last.beta0), 'beta0 must remain finite with a constant column present');

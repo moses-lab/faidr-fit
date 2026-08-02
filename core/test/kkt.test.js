@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { toColumnMajor, sigmoid, nullModelDeviance, nullIntercept } from '../src/math/logistic.js';
-import { standardize } from '../src/standardize.js';
-import { computeLambdaMax, buildLambdaPath } from '../src/lambdaPath.js';
-import { irlsLogisticLasso } from '../src/irlsLogisticLasso.js';
+import { sigmoid, computeNullDeviance, nullIntercept } from '../src/math/logistic.js';
+import { standardize } from '../src/math/standardize.js';
+import { computeLambdaMax, buildLambdaPath } from '../src/math/lambdaPath.js';
+import { irlsLogisticLasso } from '../src/math/irlsLogisticLasso.js';
+import { t } from "../test-support/util.js";
 
 /**
  * This test does not compare against glmnet or any other reference
@@ -45,14 +46,15 @@ function makeData(seed) {
 }
 
 const { X, y } = makeData(999);
-const Xcol = toColumnMajor(X);
-const { Xstd } = standardize(Xcol);
-const p = Xstd.length;
-const lambdaMax = computeLambdaMax(Xstd, y);
-const lambdaPath = buildLambdaPath(lambdaMax, p, X.length, 30);
-const nullDeviance = nullModelDeviance(y);
+const n = X.length;
+const p = X[0].length;
+const Xcol = t(X);
+const { Xstd } = standardize(Xcol, n, p);
+const lambdaMax = computeLambdaMax(Xstd, y, n, p);
+const lambdaPath = buildLambdaPath(lambdaMax, n, p, 30);
+const nullDeviance = computeNullDeviance(y, n);
 
-let beta0 = nullIntercept(y);
+let beta0 = nullIntercept(y, n);
 let beta = new Float64Array(p);
 
 const KKT_TOLERANCE = 1e-4; // slack for floating point + finite thresh,
@@ -60,19 +62,24 @@ const KKT_TOLERANCE = 1e-4; // slack for floating point + finite thresh,
 // relative) leaves a small residual gap in the KKT conditions, this is
 // just how much of that gap the test tolerates.
 
+const solverOpts = {
+  convergenceThreshold: 1e-7,
+  maxIterations: 100,
+  maxHalvings: Math.ceil(-Math.log2(Number.EPSILON)),
+};
+
 let checkedCount = 0;
 
 for (let k = 0; k < lambdaPath.length; k++) {
   const lambda = lambdaPath[k];
-  const result = irlsLogisticLasso({
-    Xstd, y, lambda, beta0Init: beta0, betaInit: beta, nullDeviance,
-  });
+  const result = irlsLogisticLasso(
+    Xstd, y, n, p, lambda, { beta0, beta }, nullDeviance, solverOpts
+  );
   beta0 = result.beta0;
   beta = result.beta;
 
   // Gradient of the unpenalized (1/N) negative log-likelihood at the
   // actual fitted probabilities (not the IRLS working values).
-  const n = y.length;
   const eta = new Float64Array(n);
   for (let i = 0; i < n; i++) {
     let e = beta0;

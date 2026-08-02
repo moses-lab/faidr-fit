@@ -3,7 +3,8 @@ import { test } from "node:test";
 import { fitLassoLogistic } from "../src/fitLassoLogistic.js";
 import { predictLogistic } from "../src/predictLogistic.js";
 import { evaluatedInR } from "../test-support/r-oracle.js";
-import { assertClose, assertVectorClose } from "./assertions.js";
+import { assertClose, assertVectorClose } from "../test-support/assertions.js";
+import { t } from "../test-support/util.js";
 
 test("predictLogistic matches glmnet coefficients", () => {
   // R-ORACLE-TAG-START
@@ -32,7 +33,7 @@ list(
 `;
   // R-ORACLE-TAG-END
 
-  const fit = fitLassoLogistic(env.X, env.y);
+  const fit = fitLassoLogistic(t(env.X), env.y);
   const expected = evaluatedInR(r, env);
   const lambda = fit.lambdaPath[env.lambda_idx];
   const coefs = fit.coefficients[env.lambda_idx];
@@ -48,6 +49,6 @@ list(
   assertClose(coefs.beta0, expected.beta[0], 1e-4, "glmnet beta0:");
   assertVectorClose(coefs.beta, expected.beta.slice(1), 1e-4, "glmnet beta");
 
-  const { eta } = predictLogistic(fit, env.X, env.lambda_idx);
+  const { eta } = predictLogistic(fit, t(env.X), env.lambda_idx);
   assertVectorClose(eta, expected.link, 1e-4, "glmnet link");
 });

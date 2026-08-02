@@ -1,129 +1,140 @@
-import {
-  sigmoid, clipProbability, deviance, nullModelDeviance, nullIntercept, toColumnMajor,
-} from './math/logistic.js';
-import { weightedLassoCD } from './weightedLassoCD.js';
-import { invertMatrix } from './math/matrixInverse.js';
+import { matrixInverse } from './math/matrixInverse.js';
+import { mean, logit, computeNullDeviance, computeDeviance, workingResponse } from './math/logistic.js';
+
+const CONVERGENCE_THRESHOLD = 1e-7; // see fitLassoLogistic.js for rationale
+const MAX_ITERATIONS = 100;
+const MAX_HALVINGS = Math.ceil(-Math.log2(Number.EPSILON));
 
 /**
- * Unpenalized (lambda = 0) logistic regression via Newton-Raphson/IRLS
- * to convergence, intended to be run on the small design matrix of
- * features already selected by fitLassoLogistic. The lasso path gives
- * a shrunken, biased set of coefficients by construction; this refit
- * is what gives calibrated coefficients and their Wald z-statistics
- * (beta_j / se_j), computed from the inverse observed Fisher
- * information at convergence.
+ * Plain (unpenalized) logistic regression via IRLS / Newton-Raphson.
+ * Intended to be run on the small feature set fitLassoLogistic has
+ * already selected, in order to obtain proper Wald z-statistics
+ * (McCullagh & Nelder 1989, Ch. 2 and 4) for those features, which a
+ * penalized fit cannot provide directly since shrinkage biases the
+ * coefficients.
  *
- * Reuses weightedLassoCD with lambda = 0, so the outer Newton loop
- * here is the same IRLS scheme as the penalized path fit (same
- * step-halving, same relative convergence check), just without an L1
- * term softening the inner solve.
+ * X uses the same column-major layout as fitLassoLogistic: an array of
+ * p columns, each a Float64Array of length n.
  */
 export function fitLogistic(X, y, opts = {}) {
-  const {
-    thresh = 1e-7, maxOuterIter = 100, maxInnerIter = 1000, maxHalvings = 20,
-  } = opts;
+  const n = X[0].length;
+  const p = X.length;
 
-  const n = X.length;
-  const p = X[0].length;
-  const Xcol = toColumnMajor(X);
-  const nullDeviance = nullModelDeviance(y);
+  const convergenceThreshold = opts.convergenceThreshold ?? CONVERGENCE_THRESHOLD;
+  const maxIterations = opts.maxIterations ?? MAX_ITERATIONS;
+  const maxHalvings = opts.maxHalvings ?? MAX_HALVINGS;
 
-  let beta0 = nullIntercept(y);
+  const nulldev = computeNullDeviance(y, n);
+
+  let beta0 = logit(mean(y, n));
   let beta = new Float64Array(p);
+  let deviance = computeDeviance(X, y, n, beta0, beta);
 
-  let eta = new Float64Array(n).fill(beta0);
-  let dev = deviance(y, eta);
+  for (let iter = 0; iter < maxIterations; iter++) {
+    const { z, w } = workingResponse(X, y, n, beta0, beta);
+    const { coefficients } = weightedLeastSquares(X, z, w, n, p);
 
-  for (let outerIter = 0; outerIter < maxOuterIter; outerIter++) {
-    const w = new Float64Array(n);
-    const z = new Float64Array(n);
-    for (let i = 0; i < n; i++) {
-      const p_i = clipProbability(sigmoid(eta[i]));
-      const w_i = p_i * (1 - p_i);
-      w[i] = w_i;
-      z[i] = eta[i] + (y[i] - p_i) / w_i;
-    }
+    const fullBeta0 = coefficients[0];
+    const fullBeta = coefficients.subarray(1);
 
-    const beta0Box = [beta0];
-    const candidateBeta = Float64Array.from(beta);
-    const { eta: solvedEta } = weightedLassoCD({
-      Xstd: Xcol, w, z, beta0: beta0Box, beta: candidateBeta,
-      lambda: 0, thresh, scale: nullDeviance, maxIter: maxInnerIter,
-    });
-
-    let candidateBeta0 = beta0Box[0];
-    let candidateEta = solvedEta;
-    let candidateDev = deviance(y, candidateEta);
-
+    let shrink = 1;
+    let stepBeta0, stepBeta, newDeviance;
     let halvings = 0;
-    while (candidateDev > dev && halvings < maxHalvings) {
+
+    do {
+      stepBeta0 = beta0 + shrink * (fullBeta0 - beta0);
+      stepBeta = new Float64Array(p);
+      for (let j = 0; j < p; j++) stepBeta[j] = beta[j] + shrink * (fullBeta[j] - beta[j]);
+
+      newDeviance = computeDeviance(X, y, n, stepBeta0, stepBeta);
+      if (Number.isFinite(newDeviance) && newDeviance <= deviance) break;
+
+      shrink *= 0.5;
       halvings++;
-      const step = Math.pow(0.5, halvings);
+    } while (halvings <= maxHalvings);
 
-      const halvedBeta0 = beta0 + step * (candidateBeta0 - beta0);
-      const halvedBeta = new Float64Array(p);
-      for (let j = 0; j < p; j++) halvedBeta[j] = beta[j] + step * (candidateBeta[j] - beta[j]);
-      const halvedEta = new Float64Array(n);
-      for (let i = 0; i < n; i++) {
-        let e = halvedBeta0;
-        for (let j = 0; j < p; j++) e += Xcol[j][i] * halvedBeta[j];
-        halvedEta[i] = e;
-      }
+    const improvement = deviance - newDeviance;
+    beta0 = stepBeta0;
+    beta = stepBeta;
+    deviance = newDeviance;
 
-      candidateBeta0 = halvedBeta0;
-      candidateBeta.set(halvedBeta);
-      candidateEta = halvedEta;
-      candidateDev = deviance(y, candidateEta);
-    }
-
-    const devChange = Math.abs(candidateDev - dev);
-
-    beta0 = candidateBeta0;
-    beta = candidateBeta;
-    eta = candidateEta;
-    dev = candidateDev;
-
-    if (devChange < thresh * nullDeviance) break;
+    if (improvement < convergenceThreshold * nulldev) break;
   }
 
-  const waldZ = computeWaldZ(X, eta, beta);
+  // Fisher information evaluated exactly at the converged (beta0, beta),
+  // rather than reusing the last IRLS step's information matrix, which
+  // was computed one (tiny, near-converged) update earlier.
+  const finalWorking = workingResponse(X, y, n, beta0, beta);
+  const { informationMatrix } = weightedLeastSquares(X, finalWorking.z, finalWorking.w, n, p);
+  const covariance = matrixInverse(informationMatrix);
+
+  const waldZ = new Float64Array(p);
+  for (let j = 0; j < p; j++) {
+    const standardError = Math.sqrt(covariance[j + 1][j + 1]);
+    waldZ[j] = beta[j] / standardError;
+  }
 
   return { beta0, beta, waldZ };
 }
 
 /**
- * Wald z-statistics from the inverse observed Fisher information,
- * Xint^T W Xint, where Xint = [1, X] and W = diag(p_i(1-p_i)) at
- * convergence. This is the same quantity R's summary(glm(...)) reports
- * as the "z value" column for a binomial GLM.
+ * Builds and solves the weighted normal equations for the augmented
+ * design [1 | X] (intercept in column 0), and returns both the solution
+ * and the information matrix X_aug^T W X_aug itself, since the latter
+ * doubles as the (inverse) asymptotic covariance of the coefficients at
+ * convergence.
  */
-function computeWaldZ(X, eta, beta) {
-  const n = X.length;
-  const p = beta.length;
+function weightedLeastSquares(X, z, w, n, p) {
   const dim = p + 1;
+  const A = Array.from({ length: dim }, () => new Float64Array(dim));
+  const b = new Float64Array(dim);
 
-  const info = Array.from({ length: dim }, () => new Float64Array(dim));
-  const row = new Float64Array(dim);
-
+  let sumW = 0;
+  let sumWz = 0;
   for (let i = 0; i < n; i++) {
-    const p_i = clipProbability(sigmoid(eta[i]));
-    const w_i = p_i * (1 - p_i);
+    sumW += w[i];
+    sumWz += w[i] * z[i];
+  }
+  A[0][0] = sumW;
+  b[0] = sumWz;
 
-    row[0] = 1;
-    for (let j = 0; j < p; j++) row[j + 1] = X[i][j];
+  for (let j = 0; j < p; j++) {
+    const col = X[j];
+    let sumWx = 0;
+    let sumWxz = 0;
+    for (let i = 0; i < n; i++) {
+      sumWx += w[i] * col[i];
+      sumWxz += w[i] * col[i] * z[i];
+    }
+    A[0][j + 1] = sumWx;
+    A[j + 1][0] = sumWx;
+    b[j + 1] = sumWxz;
+  }
 
-    for (let a = 0; a < dim; a++) {
-      const wRowA = w_i * row[a];
-      for (let b = 0; b < dim; b++) {
-        info[a][b] += wRowA * row[b];
-      }
+  for (let j = 0; j < p; j++) {
+    const colJ = X[j];
+    for (let k = j; k < p; k++) {
+      const colK = X[k];
+      let sumWxx = 0;
+      for (let i = 0; i < n; i++) sumWxx += w[i] * colJ[i] * colK[i];
+      A[j + 1][k + 1] = sumWxx;
+      A[k + 1][j + 1] = sumWxx;
     }
   }
 
-  const cov = invertMatrix(info);
-  const waldZ = new Float64Array(p);
-  for (let j = 0; j < p; j++) {
-    waldZ[j] = beta[j] / Math.sqrt(cov[j + 1][j + 1]);
+  const informationMatrix = A;
+  const coefficients = solveLinearSystem(A, b);
+  return { coefficients, informationMatrix };
+}
+
+function solveLinearSystem(A, b) {
+  const inv = matrixInverse(A);
+  const dim = b.length;
+  const x = new Float64Array(dim);
+  for (let i = 0; i < dim; i++) {
+    let s = 0;
+    for (let k = 0; k < dim; k++) s += inv[i][k] * b[k];
+    x[i] = s;
   }
-  return waldZ;
+  return x;
 }

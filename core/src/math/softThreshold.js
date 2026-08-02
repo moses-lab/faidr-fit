@@ -1,11 +1,13 @@
 /**
- * The soft-thresholding operator: the closed-form solution to
- *   argmin_beta  (1/2)(beta - x)^2 + lambda|beta|
- * This is the elementary update coordinate descent repeats for every
- * feature, every sweep (Friedman, Hastie & Tibshirani 2010, eq. 6).
+ * Soft-thresholding operator S(z, gamma) = sign(z) * max(|z| - gamma, 0).
+ *
+ * This is the proximal operator of the L1 penalty and is the closed-form
+ * coordinatewise minimizer used throughout coordinate descent for the
+ * lasso (Friedman, Hastie & Tibshirani 2010, Eq. 8; Hastie, Tibshirani &
+ * Wainwright 2015, Sec. 5.3).
  */
-export function softThreshold(x, lambda) {
-  if (x > lambda) return x - lambda;
-  if (x < -lambda) return x + lambda;
+export function softThreshold(z, gamma) {
+  if (z > gamma) return z - gamma;
+  if (z < -gamma) return z + gamma;
   return 0;
 }
