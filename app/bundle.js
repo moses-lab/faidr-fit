@@ -4,10 +4,10 @@
 //
 //   node app/bundle.js   ->   app/dist/faidr.html
 //
-// Strategy: read index.html, inline the three ES modules and the solver as one
-// <script type="module">, and embed meta.json + data.bin.gz (base64) so the page
-// decodes them via loadFromEmbedded instead of fetch. Everything stays legible in
-// the sources; this file is the only place that stitches them together.
+// Strategy: read index.html, inline the modules and the solver as one
+// <script type="module">, and embed meta.json + data.bin.gz (base64) so the
+// page decodes them via loadFromEmbedded instead of fetch. Everything stays
+// legible in the sources; this file is the only place that stitches them together.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -37,6 +37,8 @@ const modules = [
   ["chart.js", read(appDir, "chart.js")],
   ["proteome.js", read(appDir, "proteome.js")],
   ["ui.js", read(appDir, "ui.js")],
+  // third-party lib for optimizing DOM on huge prediction table
+  ["clusterize.js", read(appDir, "clusterize.js")],
 ].map(([name, src]) => `// ---- ${name} ----\n${stripImports(src).replace(/^export\s+/gm, "")}`).join("\n\n");
 
 const cacheDir = join(appDir, ".cache");
