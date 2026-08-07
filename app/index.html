@@ -54,7 +54,8 @@
   #feature-count:hover { border-bottom-color: var(--ink-2); }
   #feature-count:focus { border-bottom-color: var(--accent); }
   #status, #predict-status { color: var(--ink-2); font-size: 13px; margin: 4px 0 16px; }
-  #chart { margin-top: 8px; max-width: 860px; margin: 0 auto; }
+  #chart { margin: 8px auto 0; max-width: 860px; overflow-x: auto; }
+  #chart svg { display: block; }
   #chart .feat { fill: var(--ink); font-size: 12px; }
   #chart .val  { fill: var(--ink-2); font-size: 11px; font-variant-numeric: tabular-nums; }
   #chart .pos  { fill: var(--pos); }
