@@ -1,0 +1,9 @@
+{
+  "name": "faidr-fit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "sh -c 'zenodo=\"$1\"; node prep-data.js \"$zenodo\"/MAP/HUMAN_ES.txt 8 && node prep-go.js \"$zenodo\"/HIGH_AUC_PPV_FILTERED_FUNCTIONS/ && node bundle.js' sh",
+    "build:ci": "node bundle.js"
+  }
+}
