@@ -37,8 +37,6 @@ const modules = [
   ["chart.js", read(appDir, "chart.js")],
   ["proteome.js", read(appDir, "proteome.js")],
   ["ui.js", read(appDir, "ui.js")],
-  // third-party lib for optimizing DOM on huge prediction table
-  ["clusterize.js", read(appDir, "clusterize.js")],
 ].map(([name, src]) => `// ---- ${name} ----\n${stripImports(src).replace(/^export\s+/gm, "")}`).join("\n\n");
 
 const cacheDir = join(appDir, ".cache");

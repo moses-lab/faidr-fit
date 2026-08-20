@@ -23,16 +23,17 @@
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--surface); color: var(--ink);
     font: 15px/1.5 system-ui, -apple-system, sans-serif; }
-  main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 64px; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 20px 64px; }
   h1 { font-size: 1.3rem; margin: 0 0 4px; }
   .sub { color: var(--ink-2); margin: 0 0 24px; }
   .panel { background: var(--panel); border: 1px solid var(--border);
     border-radius: 10px; padding: 16px; margin-bottom: 20px; }
-  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-  .layout > .panel { margin-bottom: 0; }
-  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
-  #predict-panel { display: flex; flex-direction: column; }
-  #predict-panel .table-wrap { flex: 1; max-height: 130px; }
+  /* Marks the transition from inputs to fit-derived output; also the target
+     of the greyed-out "computing" state while a fit is running. */
+  #results-heading { font-size: 0.75rem; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--ink-2); margin: 4px 0 12px;
+    padding-top: 14px; border-top: 1px solid var(--border); }
+  .computing { opacity: 0.45; pointer-events: none; transition: opacity 0.15s ease; }
   label { display: block; font-weight: 600; margin-bottom: 6px; }
   textarea { width: 100%; min-height: 96px; resize: vertical; padding: 8px 10px;
     border: 1px solid var(--border); border-radius: 6px; background: var(--surface);
@@ -53,7 +54,12 @@
   #feature-count { cursor: text; border-bottom: 1px dashed var(--axis); outline: none; }
   #feature-count:hover { border-bottom-color: var(--ink-2); }
   #feature-count:focus { border-bottom-color: var(--accent); }
-  #status, #predict-status { color: var(--ink-2); font-size: 13px; margin: 4px 0 16px; }
+  #status { color: var(--ink-2); font-size: 13px; margin: 4px 0 16px; min-height: 1.4em; }
+  #predict-status { color: var(--ink-2); font-size: 13px; margin: 0; min-height: 1.4em; }
+  .predict-summary { justify-content: space-between; margin: 8px 0 0; }
+  .stack { display: flex; flex-direction: column; gap: 4px; }
+  .stack p { margin: 0; }
+  .metrics-row { display: flex; gap: 28px; flex-wrap: wrap; }
   #chart { margin: 8px auto 0; max-width: 860px; overflow-x: auto; }
   #chart svg { display: block; }
   #chart .feat { fill: var(--ink); font-size: 12px; }
@@ -67,20 +73,6 @@
     border-radius: 2px; margin-right: 6px; vertical-align: middle; }
   .legend .p::before { background: var(--pos); }
   .legend .n::before { background: var(--neg); }
-
-  /* Predict panel: a scrollable results table, sticky header so long lookups
-     stay readable, plus a badge column for the pass/fail call. */
-  .table-wrap { overflow: auto; max-height: 320px; border: 1px solid var(--border);
-    border-radius: 8px; margin-top: 4px; scrollbar-gutter: stable; }
-  #predict-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-  #predict-table th, #predict-table td { padding: 6px 10px; text-align: left;
-    border-bottom: 1px solid var(--border); white-space: nowrap; }
-  #predict-table th { position: sticky; top: 0; background: var(--panel); font-weight: 600; }
-  #predict-table th:nth-child(2), #predict-table td:nth-child(2),
-  #predict-table th:nth-child(3), #predict-table td:nth-child(3) { width: 7.5em; }
-  #predict-table td:nth-child(2) { font-variant-numeric: tabular-nums; }
-  .call.yes { color: var(--accent); font-weight: 700; }
-  .call.no { color: var(--ink-2); }
 </style>
 </head>
 <body>
@@ -88,15 +80,17 @@
   <h1>FAIDR-Fit</h1>
   <p class="sub">Explore the molecular features and function of disordered regions across the human proteome, in your browser.</p>
 
-  <div class="layout">
-    <div class="panel" id="benchmark-panel">
-      <div id="go-row">
-        <label for="go-select">Benchmark set (GO term)</label>
-        <select id="go-select"><option value="">— none (paste your own below) —</option></select>
-      </div>
-      <label for="positives" style="margin-top: 14px">Or a custom positive set (one IDR id or protein prefix per line)</label>
-      <textarea id="positives" placeholder="Q5VUJ6&#10;P07305_IDR_1_97&#10;..."></textarea>
-      <p id="status"></p>
+  <div class="panel" id="main-panel">
+    <div id="go-row">
+      <label for="go-select">Benchmark set (GO term)</label>
+      <select id="go-select"><option value="">— none (paste your own below) —</option></select>
+    </div>
+    <label for="positives" style="margin-top: 14px">Or a custom positive set (one IDR id or protein prefix per line)</label>
+    <textarea id="positives" placeholder="Q5VUJ6&#10;P07305_IDR_1_97&#10;..."></textarea>
+    <p id="status"></p>
+
+    <div id="results-body">
+      <h2 id="results-heading">Results</h2>
 
       <label for="features">Number of features</label>
       <div class="row">
@@ -104,22 +98,17 @@
         <input id="features" type="range" min="0" max="0" value="0" step="1">
         <button id="feat-inc" class="step" type="button" aria-label="More features">+</button>
       </div>
-      <p class="readout"><b id="feature-count" contenteditable="true" spellcheck="false" title="Click to type an exact feature count">0</b> features selected <span id="compute-time"></span></p>
-    </div>
+      <p class="readout"><b id="feature-count" contenteditable="true" spellcheck="false" title="Click to type an exact feature count">0</b> features selected</p>
 
-    <div class="panel" id="predict-panel">
-      <label for="predict-query">Predict: protein or IDR id</label>
-      <textarea id="predict-query" placeholder="Q5VUJ6&#10;P07305_IDR_1_97&#10;..."></textarea>
-      <p id="predict-status">Choose a benchmark or paste a training set above to enable predictions.</p>
-      <p id="predict-threshold" class="readout"></p>
-      <div id="predict-scroll" class="table-wrap">
-        <table id="predict-table">
-          <thead><tr><th>IDR</th><th>P(signal)</th><th>Call</th></tr></thead>
-          <tbody id="predict-tbody"></tbody>
-        </table>
-      </div>
-      <div class="row" style="margin-top: 12px">
-        <button id="download-tsv" type="button" disabled>Download predictions (TSV)</button>
+      <div class="row predict-summary">
+        <div class="stack">
+          <p class="readout metrics-row">
+            <span id="predict-recall">Recall: —</span>
+            <span id="predict-precision">Precision (÷Relevance): —</span>
+          </p>
+          <p id="predict-status"></p>
+        </div>
+        <button id="download-tsv" type="button" disabled>Download predictions (.tsv)</button>
       </div>
     </div>
   </div>
