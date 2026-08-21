@@ -65,6 +65,22 @@ function negativeThreshold(p, yVec) {
   return negs[k];
 }
 
+// IDR ids look like "P07305_IDR_1_97" -- the part before "_IDR_" is the
+// protein accession. Count distinct proteins behind the full IDR set purely
+// from the ids array, so this doesn't depend on proteome.js exposing it.
+function countProteins(ids) {
+  const seen = new Set();
+  for (const id of ids) {
+    const m = id.match(/^(.*?)_IDR_/);
+    seen.add(m ? m[1] : id);
+  }
+  return seen.size;
+}
+
+function capitalize(s) {
+  return s ? s[0].toUpperCase() + s.slice(1) : s;
+}
+
 function formatMs(ms) {
   return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(2)} s`;
 }
@@ -112,6 +128,14 @@ export function startApp(proteome, go, root = document) {
   const decBtn = el("feat-dec"), incBtn = el("feat-inc");
   const resultsBody = el("results-body");
   const downloadBtn = el("download-tsv");
+  const inputCount = el("input-count");
+  const randomSize = el("random-size"), randomBtn = el("randomize-btn");
+
+  if (inputCount) {
+    inputCount.textContent =
+      `${ids.length.toLocaleString()} IDRs from ${countProteins(ids).toLocaleString()} proteins available`;
+  }
+  if (randomSize) randomSize.max = String(ids.length);
 
   // State from the most recent path fit. counts/firstStep let the slider (a
   // plain index 0..counts.length-1) resolve to a real step on the path.
@@ -142,7 +166,7 @@ export function startApp(proteome, go, root = document) {
       if (downloadBtn) downloadBtn.disabled = true;
       return;
     }
-    summary.textContent = `${ids.length.toLocaleString()} IDR predictions available for download`;
+    summary.textContent = `${ids.length.toLocaleString()} IDR function predictions available for download`;
     if (downloadBtn) downloadBtn.disabled = false;
   }
 
@@ -281,6 +305,15 @@ export function startApp(proteome, go, root = document) {
     }, 0));
   }
 
+  // Shared tail end of both entry points: run the fit and seed the randomizer
+  // with the size of the set just committed. Keeping this in one place means
+  // paste and GO-select can't drift out of sync on what "committing a set"
+  // does downstream.
+  function commit(labelVector, matched, statusText) {
+    applyLabels(labelVector, statusText);
+    if (randomSize && matched > 0) randomSize.value = String(matched);
+  }
+
   // Paste box: matches ids/prefixes; typing here clears any GO selection.
   function fromTextarea() {
     if (goSelect) goSelect.value = "";
@@ -290,8 +323,8 @@ export function startApp(proteome, go, root = document) {
       ? "Choose a benchmark GO set above, or paste a positive set here."
       : (matched < 2 || neg < 2)
         ? `${matched} IDRs matched — need at least 2 positives.`
-        : `${matched} IDRs matched from ${nWanted} lines · ${matched} positive / ${neg} background`;
-    applyLabels(lab, st);
+        : `${matched} IDRs matched from ${nWanted} lines`;
+    commit(lab, matched, st);
   }
 
   // GO dropdown: build the label vector from the term's positive rows, and
@@ -310,7 +343,32 @@ export function startApp(proteome, go, root = document) {
       idList.push(ids[i]);
     }
     positives.value = idList.join("\n");
-    applyLabels(yv, `${t.go} ${t.label} · ${t.proteins} proteins / ${t.idrs} IDRs`);
+    commit(yv, idList.length, `${t.go} ${t.label} · ${t.proteins} proteins / ${t.idrs} IDRs`);
+  }
+
+  // Randomize: pick N distinct ids (Fisher-Yates partial shuffle so it's
+  // cheap even when N is close to the full set), write them into the paste
+  // box, and let fromTextarea take it from there -- same as a manual paste.
+  function fromRandom() {
+    if (goSelect) goSelect.value = "";
+    let n = parseInt(randomSize.value, 10);
+    if (!Number.isFinite(n)) n = 50;
+    n = Math.max(1, Math.min(ids.length, n));
+    randomSize.value = String(n);
+
+    const pool = ids.slice();
+    for (let i = 0; i < n; i++) {
+      const j = i + Math.floor(Math.random() * (pool.length - i));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    positives.value = pool.slice(0, n).join("\n");
+    fromTextarea();
+  }
+  if (randomBtn) randomBtn.addEventListener("click", fromRandom);
+  if (randomSize) {
+    randomSize.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); fromRandom(); }
+    });
   }
 
   positives.addEventListener("input", debounce(fromTextarea, 300));
@@ -330,7 +388,7 @@ export function startApp(proteome, go, root = document) {
     for (const t of go.terms) {
       const opt = document.createElement("option");
       opt.value = t.go;
-      opt.textContent = `${t.go} ${t.label} — ${t.proteins} proteins / ${t.idrs} IDRs`;
+      opt.textContent = `${capitalize(t.label)} (${t.idrs})`;
       goSelect.appendChild(opt);
     }
     goSelect.addEventListener("change", fromGo);

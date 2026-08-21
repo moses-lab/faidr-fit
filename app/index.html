@@ -35,14 +35,27 @@
     padding-top: 14px; border-top: 1px solid var(--border); }
   .computing { opacity: 0.45; pointer-events: none; transition: opacity 0.15s ease; }
   label { display: block; font-weight: 600; margin-bottom: 6px; }
+  .sub-count { color: var(--ink-2); font-size: 13px; margin: 0 0 14px;
+    min-height: 1lh; }
+  .input-grid { display: flex; gap: 16px; flex-wrap: wrap; }
+  .input-grid textarea { flex: 1 1 320px; min-width: 240px; }
+  .input-helpers { flex: 0 0 200px; min-width: 180px; display: flex;
+    flex-direction: column; gap: 16px; }
+  .input-helpers label { font-size: 13px; font-weight: 600; color: var(--ink-2);
+    margin-bottom: 4px; }
   textarea { width: 100%; min-height: 96px; resize: vertical; padding: 8px 10px;
     border: 1px solid var(--border); border-radius: 6px; background: var(--surface);
     color: var(--ink); font: 13px/1.4 ui-monospace, monospace; }
   select { width: 100%; padding: 7px 10px; border: 1px solid var(--border);
     border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; }
+  input[type=number] { width: 68px; padding: 7px 10px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit;
+    -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   button { font: inherit; color: var(--ink); background: var(--surface);
-    border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px;
+    border: 1px solid var(--border); border-radius: 6px; padding: 7px 12px;
     cursor: pointer; }
   button:hover { border-color: var(--accent); color: var(--accent); }
   button:disabled { opacity: 0.4; cursor: default; }
@@ -54,7 +67,7 @@
   #feature-count { cursor: text; border-bottom: 1px dashed var(--axis); outline: none; }
   #feature-count:hover { border-bottom-color: var(--ink-2); }
   #feature-count:focus { border-bottom-color: var(--accent); }
-  #status { color: var(--ink-2); font-size: 13px; margin: 4px 0 16px; min-height: 1.4em; }
+  #status { color: var(--ink-2); font-size: 13px; margin: 14px 0 14px; min-height: 1.4em; }
   #predict-status { color: var(--ink-2); font-size: 13px; margin: 0; min-height: 1.4em; }
   .predict-summary { justify-content: space-between; margin: 8px 0 0; }
   .stack { display: flex; flex-direction: column; gap: 4px; }
@@ -78,27 +91,40 @@
 <body>
 <main>
   <h1>FAIDR-Fit</h1>
-  <p class="sub">Explore the molecular features and function of disordered regions across the human proteome in your browser</p>
+  <p class="sub">Explore the molecular features and function of intrinsically disordered regions (IDRs) across the human proteome in your browser</p>
 
   <div class="panel" id="main-panel">
-    <div id="go-row">
-      <label for="go-select">Benchmark set (GO term)</label>
-      <select id="go-select"><option value="">— none (paste your own below) —</option></select>
+    <label for="positives">Define function by specifying any group of related proteins or IDRs</label>
+    <p class="sub-count" id="input-count"></p>
+
+    <div class="input-grid">
+      <textarea id="positives" placeholder="Q5VUJ6&#10;P07305_IDR_1_97&#10;..."></textarea>
+      <div class="input-helpers">
+        <div id="go-row">
+          <label for="go-select">Or choose a predefined group</label>
+          <select id="go-select"><option value="">— choose a group —</option></select>
+        </div>
+        <div id="random-row">
+          <label for="random-size">Or randomize a number of IDRs</label>
+          <div class="row">
+            <input id="random-size" type="number" min="1" value="200">
+            <button id="randomize-btn" type="button">Randomize</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <label for="positives" style="margin-top: 14px">Or a custom positive set (one IDR id or protein prefix per line)</label>
-    <textarea id="positives" placeholder="Q5VUJ6&#10;P07305_IDR_1_97&#10;..."></textarea>
     <p id="status"></p>
 
     <div id="results-body">
       <h2 id="results-heading">Results</h2>
 
-      <label for="features">Number of features</label>
+      <label for="features">Number of molecular features</label>
       <div class="row">
         <button id="feat-dec" class="step" type="button" aria-label="Fewer features">−</button>
         <input id="features" type="range" min="0" max="0" value="0" step="1">
         <button id="feat-inc" class="step" type="button" aria-label="More features">+</button>
       </div>
-      <p class="readout"><b id="feature-count" contenteditable="true" spellcheck="false" title="Click to type an exact feature count">0</b> features selected</p>
+      <p class="readout"><b id="feature-count" contenteditable="true" spellcheck="false" title="Click to type an exact feature count">0</b> molecular features selected</p>
 
       <div class="row predict-summary">
         <div class="stack">
