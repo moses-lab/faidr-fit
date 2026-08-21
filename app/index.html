@@ -48,7 +48,7 @@
   button:disabled { opacity: 0.4; cursor: default; }
   button:disabled:hover { border-color: var(--border); color: var(--ink); }
   .step { padding: 6px 10px; font-weight: 600; line-height: 1; }
-  input[type=range] { flex: 1; min-width: 220px; accent-color: var(--accent); }
+  input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
   .readout { color: var(--ink-2); font-size: 13px; margin-top: 8px; }
   .readout b { color: var(--ink); font-variant-numeric: tabular-nums; }
   #feature-count { cursor: text; border-bottom: 1px dashed var(--axis); outline: none; }
@@ -59,7 +59,7 @@
   .predict-summary { justify-content: space-between; margin: 8px 0 0; }
   .stack { display: flex; flex-direction: column; gap: 4px; }
   .stack p { margin: 0; }
-  .metrics-row { display: flex; gap: 28px; flex-wrap: wrap; }
+  .metrics-row { display: flex; column-gap: 28px; row-gap: 4px; flex-wrap: wrap; }
   #chart { margin: 8px auto 0; max-width: 860px; overflow-x: auto; }
   #chart svg { display: block; }
   #chart .feat { fill: var(--ink); font-size: 12px; }
@@ -78,7 +78,7 @@
 <body>
 <main>
   <h1>FAIDR-Fit</h1>
-  <p class="sub">Explore the molecular features and function of disordered regions across the human proteome, in your browser.</p>
+  <p class="sub">Explore the molecular features and function of disordered regions across the human proteome in your browser</p>
 
   <div class="panel" id="main-panel">
     <div id="go-row">

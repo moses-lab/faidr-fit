@@ -142,7 +142,7 @@ export function startApp(proteome, go, root = document) {
       if (downloadBtn) downloadBtn.disabled = true;
       return;
     }
-    summary.textContent = `${ids.length.toLocaleString()} IDR predictions are available for download.`;
+    summary.textContent = `${ids.length.toLocaleString()} IDR predictions available for download`;
     if (downloadBtn) downloadBtn.disabled = false;
   }
 
@@ -273,7 +273,8 @@ export function startApp(proteome, go, root = document) {
       slider.max = String(counts.length - 1);
       slider.step = "1";
       setSliderEnabled(true);
-      renderAt(Math.floor((counts.length - 1) / 2)); // start roughly mid-range
+      countOut.textContent = "15";
+      commitFeatureCount();
 
       status.textContent = `${statusText} · computed in ${formatMs(performance.now() - t0)}`;
       setComputingState(false);
