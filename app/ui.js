@@ -180,36 +180,42 @@ export function startApp(proteome, go, root = document) {
     if (!recallOut || !precisionOut) return;
     if (!currentProb || !y) {
       recallOut.textContent = "Recall: —";
-      precisionOut.textContent = "Precision (÷Relevance): —";
+      precisionOut.textContent = "Precision (Enrichment): —";
       return;
     }
     const recall = apparentRecall(currentProb, y, currentThreshold);
     const { precision, enrichment } = apparentPrecision(currentProb, y, currentThreshold);
     recallOut.textContent = `Recall: ${(recall * 100).toFixed(1)}%`;
-    precisionOut.textContent = `Precision (÷Relevance): ${(precision * 100).toFixed(1)}% (${enrichment.toFixed(1)}×)`;
+    precisionOut.textContent = `Precision (Enrichment): ${(precision * 100).toFixed(1)}% (${enrichment.toFixed(1)}×)`;
   }
 
   // Exports predictions for the full proteome at the current slider position.
   // Model state is recorded as a header comment so a file downloaded now
   // isn't silently ambiguous with one from another slider position later.
   function downloadPredictions() {
-    if (!currentProb || !path) return;
+    if (!currentProb || !path || !y) return;
     const featureCount = counts[+slider.value];
-    const pathIdx = firstStep.get(featureCount);
-    const lambda = lambdaPath[pathIdx];
+    const recall = apparentRecall(currentProb, y, currentThreshold);
+    const { precision, enrichment } = apparentPrecision(currentProb, y, currentThreshold);
+    let inputIdrs = 0; for (let i = 0; i < y.length; i++) inputIdrs += y[i];
     const lines = [
-      `# FAIDR predictions -- feature_count=${featureCount} lambda=${lambda.toExponential(4)} ` +
-        `threshold=${currentThreshold.toFixed(6)} target_fpr=${TARGET_FPR}`,
-      "id\tprobability\tabove_threshold",
+      `# https://moses-lab.github.io/faidr-fit/\t\t\t`,
+      `# input_idrs=${inputIdrs} features=${featureCount}\t\t\t`,
+      `# recall=${recall.toFixed(6)} precision=${precision.toFixed(6)} enrichment=${enrichment.toFixed(2)}x\t\t\t`,
+      `# probability_threshold=${currentThreshold.toFixed(6)}\t\t\t`,
+      "idr_id\tactual\tpredicted\tprobability",
     ];
-    for (let i = 0; i < ids.length; i++) {
-      lines.push(`${ids[i]}\t${currentProb[i].toFixed(6)}\t${currentProb[i] >= currentThreshold ? 1 : 0}`);
+    // actual desc, then probability desc within each group
+    const order = [...ids.keys()].sort((a, b) => (y[b] - y[a]) || (currentProb[b] - currentProb[a]));
+    for (const i of order) {
+      const predicted = currentProb[i] >= currentThreshold ? 1 : 0;
+      lines.push(`${ids[i]}\t${y[i]}\t${predicted}\t${currentProb[i].toFixed(6)}`);
     }
     const blob = new Blob([lines.join("\n")], { type: "text/tab-separated-values" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `faidr-predictions-${featureCount}features.tsv`;
+    a.download = "faidr-predictions.tsv";
     a.click();
     URL.revokeObjectURL(url);
   }
