@@ -15,7 +15,7 @@ export async function gunzip(bytes) {
 // Build X from the inflated column-major int buffer and the metadata. The
 // quantization width is carried in meta.bytes (1 = int8, 2 = int16; default 2).
 export function decode(intBuffer, meta) {
-  const { n, p, bytes, scale, features, labels, descs, ids } = meta;
+  const { n, p, bytes, scale, features, labels, descs, ids, uniprot } = meta;
   const Q = bytes === 1 ? Int8Array : Int16Array;
   const q = new Q(intBuffer.buffer, intBuffer.byteOffset, p * n);
   const inv = 1 / scale;
@@ -25,8 +25,10 @@ export function decode(intBuffer, meta) {
     for (let i = 0; i < n; i++) col[i] = q[base + i] * inv;
     cols.push(col);
   }
-  // labels/descs are the authoritative SI names aligned to features
-  return { X: { n, p, cols, features }, ids, labels: labels || features, descs: descs || [] };
+  // labels/descs are the authoritative SI names aligned to features. uniprot
+  // is keyed by accession (not per-row) -- callers derive the accession from
+  // an IDR id and look it up here.
+  return { X: { n, p, cols, features }, ids, labels: labels || features, descs: descs || [], uniprot: uniprot || {} };
 }
 
 // Dev path: fetch meta.json + data.bin.gz next to the page, inflate, decode.

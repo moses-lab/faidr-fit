@@ -60,10 +60,22 @@ const resolved = features.map((f) => labelMap[f] ?? { name: f, desc: "", source:
 const labels = resolved.map((r) => r.name);
 const descs = resolved.map((r) => r.desc);
 
+// accession -> UniProt entry name (e.g. P07305 -> H10_HUMAN), for a quick
+// mnemonic lookup column. Keyed by accession rather than one entry per IDR,
+// since several IDRs share a protein and this stays small either way (one
+// entry per accession, not per row).
+const uniprot = {};
+for (const line of readFileSync(join(appDir, "uniprot.csv"), "utf8").split("\n")) {
+  const t = line.trim();
+  if (!t) continue;
+  const [acc, name] = t.split(",");
+  uniprot[acc] = name;
+}
+
 mkdirSync(outDir, { recursive: true });
 const gz = gzipSync(Buffer.from(buf.buffer), { level: 9 });
 writeFileSync(join(outDir, "data.bin.gz"), gz);
-const metaJson = JSON.stringify({ n, p, bytes: BYTES, scale: SCALE, features, labels, descs, ids }, null, 2);
+const metaJson = JSON.stringify({ n, p, bytes: BYTES, scale: SCALE, features, labels, descs, ids, uniprot }, null, 2);
 writeFileSync(join(outDir, "meta.json"), metaJson);
 
 const mb = (b) => (b / 1024 / 1024).toFixed(2);
@@ -72,3 +84,4 @@ console.log(`${n} IDRs × ${p} features  (int${BITS} ×${SCALE})`);
 console.log(`data.bin.gz  ${mb(gz.length)} MB  (raw int${BITS} ${mb(buf.byteLength)} MB)`);
 console.log(`meta.json    ${mb(Buffer.byteLength(metaJson))} MB`);
 console.log(`labels by source:`, sources);
+console.log(`uniprot   ${Object.keys(uniprot).length} accessions mapped`);

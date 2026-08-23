@@ -66,14 +66,17 @@ function negativeThreshold(p, yVec) {
 }
 
 // IDR ids look like "P07305_IDR_1_97" -- the part before "_IDR_" is the
-// protein accession. Count distinct proteins behind the full IDR set purely
-// from the ids array, so this doesn't depend on proteome.js exposing it.
+// protein accession.
+function accessionOf(id) {
+  const m = id.match(/^(.*?)_IDR_/);
+  return m ? m[1] : id;
+}
+
+// Count distinct proteins behind the full IDR set purely from the ids array,
+// so this doesn't depend on proteome.js exposing it.
 function countProteins(ids) {
   const seen = new Set();
-  for (const id of ids) {
-    const m = id.match(/^(.*?)_IDR_/);
-    seen.add(m ? m[1] : id);
-  }
+  for (const id of ids) seen.add(accessionOf(id));
   return seen.size;
 }
 
@@ -120,7 +123,7 @@ function apparentPrecision(prob, yVec, threshold) {
 }
 
 export function startApp(proteome, go, root = document) {
-  const { X, ids, labels, descs } = proteome;
+  const { X, ids, labels, descs, uniprot } = proteome;
   const el = (id) => root.getElementById(id);
   const positives = el("positives"), slider = el("features"), chart = el("chart");
   const status = el("status"), countOut = el("feature-count");
@@ -199,17 +202,19 @@ export function startApp(proteome, go, root = document) {
     const { precision, enrichment } = apparentPrecision(currentProb, y, currentThreshold);
     let inputIdrs = 0; for (let i = 0; i < y.length; i++) inputIdrs += y[i];
     const lines = [
-      `# https://moses-lab.github.io/faidr-fit/\t\t\t`,
-      `# input_idrs=${inputIdrs} features=${featureCount}\t\t\t`,
-      `# recall=${recall.toFixed(6)} precision=${precision.toFixed(6)} enrichment=${enrichment.toFixed(2)}x\t\t\t`,
-      `# probability_threshold=${currentThreshold.toFixed(6)}\t\t\t`,
-      "idr_id\tactual\tpredicted\tprobability",
+      `# https://moses-lab.github.io/faidr-fit/\t\t\t\t`,
+      `# input_idrs=${inputIdrs} features=${featureCount}\t\t\t\t`,
+      `# recall=${recall.toFixed(6)} precision=${precision.toFixed(6)} enrichment=${enrichment.toFixed(2)}x\t\t\t\t`,
+      `# probability_threshold=${currentThreshold.toFixed(6)}\t\t\t\t`,
+      "idr_id\tuniprot\tactual\tpredicted\tprobability",
     ];
     // actual desc, then probability desc within each group
     const order = [...ids.keys()].sort((a, b) => (y[b] - y[a]) || (currentProb[b] - currentProb[a]));
     for (const i of order) {
       const predicted = currentProb[i] >= currentThreshold ? 1 : 0;
-      lines.push(`${ids[i]}\t${y[i]}\t${predicted}\t${currentProb[i].toFixed(6)}`);
+      const acc = accessionOf(ids[i]);
+      const name = (uniprot && uniprot[acc]) || acc;
+      lines.push(`${ids[i]}\t${name}\t${y[i]}\t${predicted}\t${currentProb[i].toFixed(6)}`);
     }
     const blob = new Blob([lines.join("\n")], { type: "text/tab-separated-values" });
     const url = URL.createObjectURL(blob);
@@ -394,7 +399,7 @@ export function startApp(proteome, go, root = document) {
     for (const t of go.terms) {
       const opt = document.createElement("option");
       opt.value = t.go;
-      opt.textContent = `${capitalize(t.label)} (${t.idrs})`;
+      opt.textContent = `${capitalize(t.label)} (${t.idrs} IDRs)`;
       goSelect.appendChild(opt);
     }
     goSelect.addEventListener("change", fromGo);
