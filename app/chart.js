@@ -58,7 +58,7 @@ function truncate(text, maxWidth, font) {
 
 // items: [{ feature, value }] already sorted by the caller (strongest first)
 export function renderBars(container, items) {
-  if (!items.length) { container.innerHTML = `<p class="empty">No features selected.</p>`; return; }
+  if (!items.length) { container.innerHTML = `<p class="empty">No features selected</p>`; return; }
 
   // Use the real container width (HARD_MIN is only a failsafe against a
   // zero-width render before layout settles). No artificial floor beyond

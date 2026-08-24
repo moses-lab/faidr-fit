@@ -288,7 +288,7 @@ export function startApp(proteome, go, root = document) {
       renderBars(chart, []); countOut.textContent = "0";
       slider.min = "0"; slider.max = "0"; slider.value = "0";
       setSliderEnabled(false);
-      setComputingState(false);
+      setComputingState(true);
       renderPredictSummary();
       renderMetrics();
       return;
@@ -325,16 +325,41 @@ export function startApp(proteome, go, root = document) {
     if (randomSize && matched > 0) randomSize.value = String(matched);
   }
 
+  // Empty-box status: instead of plain instructions, offer a one-click path
+  // if the nucleolus GO term is available in this build's GO data -- wired
+  // to fromGo (declared below, hoisted), same path as the dropdown.
+  function renderEmptyStatus() {
+    status.textContent = "";
+    if (go && go.terms.some((t) => t.go === "GO:0005730")) {
+      status.append("Not sure where to start? ");
+      const tryBtn = document.createElement("button");
+      tryBtn.type = "button";
+      tryBtn.id = "try-nucleolus-btn";
+      tryBtn.className = "link-btn";
+      tryBtn.textContent = "Try nucleolus proteins";
+      tryBtn.addEventListener("click", () => {
+        goSelect.value = "GO:0005730";
+        fromGo();
+      });
+      status.append(tryBtn);
+    } else {
+      status.textContent = "Paste a protein or IDR set to get started";
+    }
+  }
+
   // Paste box: matches ids/prefixes; typing here clears any GO selection.
   function fromTextarea() {
     if (goSelect) goSelect.value = "";
     const { y: lab, matched, nWanted } = buildLabels(positives.value, ids);
     const neg = ids.length - matched;
-    const st = !nWanted
-      ? "Choose a benchmark GO set above, or paste a positive set here."
-      : (matched < 2 || neg < 2)
-        ? `${matched} IDRs matched — need at least 2 positives.`
-        : `${matched} IDRs matched from ${nWanted} lines`;
+    if (!nWanted) {
+      commit(lab, matched, "");
+      renderEmptyStatus();
+      return;
+    }
+    const st = (matched < 2 || neg < 2)
+      ? `${matched} IDRs matched — need at least 2 selected and 2 not selected`
+      : `${matched} IDRs matched from ${nWanted} lines`;
     commit(lab, matched, st);
   }
 
@@ -403,17 +428,14 @@ export function startApp(proteome, go, root = document) {
       goSelect.appendChild(opt);
     }
     goSelect.addEventListener("change", fromGo);
-    if (positives.value.trim()) {
-      fromTextarea();
-    } else {
-      // default to nucleolus so the app is immediately demoing (matches the report)
-      goSelect.value = go.terms.some((t) => t.go === "GO:0005730") ? "GO:0005730" : go.terms[0].go;
-      fromGo();
-    }
-  } else {
-    if (goRow) goRow.style.display = "none";
-    fromTextarea();
+  } else if (goRow) {
+    goRow.style.display = "none";
   }
+
+  // No default selection -- start empty. fromTextarea() on an empty box
+  // hits the pos<2 branch of applyLabels, which now greys the results
+  // section the same way a running fit does.
+  fromTextarea();
 }
 
 function debounce(fn, ms) {
