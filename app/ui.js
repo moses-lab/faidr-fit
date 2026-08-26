@@ -206,7 +206,7 @@ export function startApp(proteome, go, root = document) {
       `# input_idrs=${inputIdrs} features=${featureCount}\t\t\t\t`,
       `# recall=${recall.toFixed(6)} precision=${precision.toFixed(6)} enrichment=${enrichment.toFixed(2)}x\t\t\t\t`,
       `# probability_threshold=${currentThreshold.toFixed(6)}\t\t\t\t`,
-      "idr_id\tuniprot\tactual\tpredicted\tprobability",
+      "idr_id\tuniprot\tinitial\tpredicted\tprobability",
     ];
     // actual desc, then probability desc within each group
     const order = [...ids.keys()].sort((a, b) => (y[b] - y[a]) || (currentProb[b] - currentProb[a]));
