@@ -81,7 +81,7 @@
   #chart .neg  { fill: var(--neg); }
   #chart .axis { stroke: var(--axis); stroke-width: 1; }
   #chart .empty { color: var(--ink-2); }
-  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--ink-2); margin: 4px 0 12px; }
+  .legend { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--ink-2); margin: 4px 0 12px; }
   .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px;
     border-radius: 2px; margin-right: 6px; vertical-align: middle; }
   .legend .p::before { background: var(--pos); }
@@ -89,15 +89,57 @@
   .link-btn { background: none; border: none; padding: 0; margin: 0;
     font: inherit; font-weight: 600; color: var(--accent); cursor: pointer; }
   .link-btn:hover { text-decoration: underline; }
+
+  .top-nav { display: flex; gap: 18px; justify-content: flex-end;
+    margin: 0 0 18px; }
+  .top-nav a { color: var(--ink-2); text-decoration: none; font-size: 13px;
+    font-weight: 600; }
+  .top-nav a:hover { color: var(--accent); }
+
+  .info-link { display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; margin-left: 6px; vertical-align: middle;
+    border-radius: 50%; border: 1px solid var(--axis); color: var(--ink-2);
+    font: 700 10px/1 system-ui, sans-serif; text-decoration: none; cursor: pointer; }
+  .info-link:hover { border-color: var(--accent); color: var(--accent); }
+
+  .site-footer { margin-top: 32px; padding-top: 16px; text-align: center;
+    border-top: 1px solid var(--border); color: var(--ink-2); font-size: 12px; }
+  .site-footer a { color: inherit; }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  .ext-icon { font-size: .85em; opacity: .7; }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45);
+    z-index: 50; padding: 40px 16px; overflow-y: auto; }
+  .overlay:target { display: block; }
+  .overlay-card { max-width: 600px; margin: 0 auto; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 12px; padding: 24px 24px 32px;
+    position: relative; }
+  .overlay-card .close-link { position: absolute; top: 14px; right: 16px;
+    color: var(--ink-2); text-decoration: none; font-size: 22px; line-height: 1; }
+  .overlay-card .close-link:hover { color: var(--accent); }
+  .overlay-card h2 { margin: 0 0 4px; font-size: 1.1rem; }
+  .overlay-card a { color: var(--accent); }
+  .overlay-card h3 { font-size: .75rem; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--ink-2); margin: 38px 0 6px; }
+  .overlay-card ul { margin: 0; padding-left: 18px; }
+  .overlay-card li { margin-bottom: 6px; }
 </style>
 </head>
 <body>
 <main>
+  <nav class="top-nav" aria-label="Site">
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+    <a href="https://moses-lab.github.io/faidr-fit/report.pdf" target="_blank" rel="noopener" title="Opens in a new tab">Report (PDF)<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a>
+    <a href="https://github.com/moses-lab/faidr-fit/issues/new" target="_blank" rel="noopener" title="Opens in a new tab">Open issue<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a>
+  </nav>
   <h1>FAIDR-Fit</h1>
   <p class="sub">Explore the molecular features and function of intrinsically disordered regions (IDRs) across the human proteome in your browser</p>
 
   <div class="panel" id="main-panel">
-    <label for="positives">Define function by specifying any group of related proteins or IDRs</label>
+    <label for="positives">Enter a group of proteins sharing an associated function or characteristic<a class="info-link" href="#about-input" aria-label="More info" title="More info">i</a></label>
     <p class="sub-count" id="input-count"></p>
 
     <div class="input-grid">
@@ -121,7 +163,7 @@
     <div id="results-body">
       <h2 id="results-heading">Results</h2>
 
-      <label for="features">Number of molecular features</label>
+      <label for="features">Number of molecular features<a class="info-link" href="#about-features" aria-label="More info" title="More info">i</a></label>
       <div class="row">
         <button id="feat-dec" class="step" type="button" aria-label="Fewer features">−</button>
         <input id="features" type="range" min="0" max="0" value="0" step="1">
@@ -137,7 +179,9 @@
           </p>
           <p id="predict-status"></p>
         </div>
-        <button id="download-tsv" type="button" disabled>Download predictions (.tsv)</button>
+        <div class="row">
+          <button id="download-tsv" type="button" disabled>Download predictions (TSV)</button>
+        </div>
       </div>
     </div>
   </div>
@@ -145,10 +189,83 @@
   <div class="legend">
     <span class="p">enriched (+z)</span>
     <span class="n">depleted (−z)</span>
+    <a class="info-link" href="#about-results" aria-label="More info" title="More info">i</a>
   </div>
   <div id="chart"></div>
+
+  <footer class="site-footer">
+    <p>Built by the <a href="https://moses.csb.utoronto.ca" target="_blank" rel="noopener">Moses Lab</a>, University of Toronto, based on <a href="https://doi.org/10.1073/pnas.2604562123" target="_blank" rel="noopener">Pritišanac et al., PNAS 2026</a></p>
+  </footer>
 </main>
 
+<div id="about" class="overlay">
+  <div class="overlay-card">
+    <a class="close-link" href="#top" aria-label="Close">&times;</a>
+    <h2>About FAIDR-Fit</h2>
+    <p>FAIDR is a statistical model for studying intrinsically disordered regions (IDRs), introduced in <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7932695/" target="_blank" rel="noopener">Zarin et al., eLife (2021)<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a> and applied to the human proteome in <a href="https://doi.org/10.1073/pnas.2604562123" target="_blank" rel="noopener">Pritišanac et al., PNAS (2026)<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a>. This web app provides an online version of it.</p>
+    <p>FAIDR stands for Feature Analysis of IDRs. Given an initial group of proteins, it extracts molecular features of their IDRs, specifically how conserved each feature is across evolution, and builds a model that identifies which of 144 molecular features are most relevant for predicting group membership.</p>
+    <p>Once the model is built, a prediction for every single IDR in the human proteome is available. This allows exploration of proteins sharing similar conserved molecular features in their IDRs.</p>
+    <p>Read the <a href="https://moses-lab.github.io/faidr-fit/report.pdf" target="_blank" rel="noopener">report (PDF)<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a> for more details.</p>
+  </div>
+</div>
+
+<div id="contact" class="overlay">
+  <div class="overlay-card">
+    <a class="close-link" href="#top" aria-label="Close">&times;</a>
+    <h2>Contact</h2>
+    <p><a href="mailto:guillaume.koenig@mail.utoronto.ca">guillaume.koenig@mail.utoronto.ca</a></p>
+    <p>Suggestions and feedback are welcome. You can also <a href="https://github.com/moses-lab/faidr-fit/issues/new" target="_blank" rel="noopener">open an issue<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a> on the project's GitHub page.</p>
+  </div>
+</div>
+
+<div id="about-input" class="overlay">
+  <div class="overlay-card">
+    <a class="close-link" href="#top" aria-label="Close">&times;</a>
+    <h2>Defining a function group</h2>
+    <p>Proteins should be entered as a column (one per line) as uppercase UniProt accession IDs. The easiest way is to copy and paste from a spreadsheet column. Input is lenient: non-matches and duplicates are automatically discarded. All the IDRs of a protein are considered. Specific IDRs can be entered by appending <code>_IDR_&lt;first AA&gt;_&lt;last AA&gt;</code>.</p>
+    <p>Groups of proteins are commonly retrieved from experiment or from GO terms.</p>
+    <p>For example, suppose you are interested in cytoplasmic stress granules, <a href="https://www.ebi.ac.uk/QuickGO/term/GO:0010494" target="_blank" rel="noopener">GO:0010494 at EBI QuickGO<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a>. On the annotation page, filter by Homo sapiens, and export all annotations as TSV (Tab-Separated Values). In that spreadsheet, copy the column "GENE PRODUCT ID" of UniProt accession IDs into the main web app text area.</p>
+    <p>Alternatively, you can pick from a predefined list of GO-term-based groups (from Pritišanac et al., PNAS 2026), or randomize a group to gauge baseline performance. A minimum of 100 proteins is advised for adequate performance, as smaller groups tend to show enrichment similar to a random group of the same size.</p>
+  </div>
+</div>
+
+<div id="about-features" class="overlay">
+  <div class="overlay-card">
+    <a class="close-link" href="#top" aria-label="Close">&times;</a>
+    <h2>Selecting a number of molecular features</h2>
+    <p>You can choose from 1 to 30 molecular features in the model (not every number in that range may be available). The recall and precision scores tend to be better with more features; however, a model with fewer features is often more desirable when scores change only marginally.</p>
+    <p>To gauge how predictive your input group actually is, compare its enrichment to models built from the same number of IDRs picked at random (see the Randomize button). A meaningful group typically shows enrichment several times higher than a random one of the same size.</p>
+    <p>Predictions of the model for all IDRs in the human proteome are available for download as a TSV file (Tab-Separated Values). In that spreadsheet, column 1 is the IDR ID, column 2 the UniProt entry name, column 3 whether in the initial group (0/1), column 4 whether predicted to belong to the group (0/1), column 5 the prediction probability (with threshold given in metadata at the top).</p>
+  </div>
+</div>
+
+<div id="about-results" class="overlay">
+  <div class="overlay-card">
+    <a class="close-link" href="#top" aria-label="Close">&times;</a>
+    <h2>Reading the bar graph</h2>
+    <p>The bar graph shows the strength (z-stat) of <em>conserved</em> molecular features which are best at predicting whether an IDR belongs to the input group and its associated function.</p>
+    <p>The emphasis on conserved is key. It's not simply the molecular features of IDRs that are considered, but how well they are conserved over evolutionary time.</p>
+    <p>Enriched (red bars) means the feature is conserved and predictive of membership in the input group; depleted (blue bars) means the feature is conserved and predictive against membership in the input group.</p>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var overlayIds = ["about", "contact", "about-input", "about-features", "about-results"];
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && overlayIds.indexOf(location.hash.slice(1)) !== -1) {
+        location.hash = "top";
+      }
+    });
+    overlayIds.forEach(function (id) {
+      var overlay = document.getElementById(id);
+      if (!overlay) return;
+      overlay.addEventListener("click", function (e) {
+        if (e.target === overlay) location.hash = "top";
+      });
+    });
+  })();
+</script>
 <script type="module">
   import { loadFromFiles, loadGoFromFiles } from "./proteome.js";
   import { startApp } from "./ui.js";

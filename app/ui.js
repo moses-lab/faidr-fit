@@ -165,7 +165,7 @@ export function startApp(proteome, go, root = document) {
       if (downloadBtn) downloadBtn.disabled = true;
       return;
     }
-    summary.textContent = `${ids.length.toLocaleString()} IDR function predictions available for download`;
+    summary.textContent = `${ids.length.toLocaleString()} IDR predictions available for download`;
     if (downloadBtn) downloadBtn.disabled = false;
   }
 
