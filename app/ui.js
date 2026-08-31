@@ -80,10 +80,6 @@ function countProteins(ids) {
   return seen.size;
 }
 
-function capitalize(s) {
-  return s ? s[0].toUpperCase() + s.slice(1) : s;
-}
-
 function formatMs(ms) {
   return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(2)} s`;
 }
@@ -424,7 +420,7 @@ export function startApp(proteome, go, root = document) {
     for (const t of go.terms) {
       const opt = document.createElement("option");
       opt.value = t.go;
-      opt.textContent = `${capitalize(t.label)} (${t.idrs} IDRs)`;
+      opt.textContent = `${t.label} (${t.idrs} IDRs)`;
       goSelect.appendChild(opt);
     }
     goSelect.addEventListener("change", fromGo);

@@ -160,7 +160,7 @@
     try { go = await loadGoFromFiles("."); } catch { /* GO sets optional */ }
     startApp(proteome, go);
   } catch (e) {
-    status.textContent = "Failed to load data — run `node app/prep-data.js` first, and serve over http.";
+    status.textContent = "Failed to load data — run `node app/prep-data.js` first, and serve over http";
     console.error(e);
   }
 </script>

@@ -61,7 +61,7 @@ const GO_GZ_B64 = "${goGzB64}";
     const proteome = await loadFromEmbedded(META, GZ_B64);
     const go = GO_JSON ? await loadGoFromEmbedded(GO_JSON, GO_GZ_B64) : null;
     startApp(proteome, go);
-  } catch (e) { status.textContent = "Failed to decode embedded data."; console.error(e); }
+  } catch (e) { status.textContent = "Failed to decode embedded data"; console.error(e); }
 })();`;
 
 // take the dev page, drop its module <script>, inject the merged one
