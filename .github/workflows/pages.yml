@@ -33,6 +33,7 @@ jobs:
         run: |
           mkdir -p _site
           cp app/dist/faidr.html _site/index.html
+          cp report.pdf _site/report.pdf
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
