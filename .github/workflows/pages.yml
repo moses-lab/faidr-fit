@@ -34,6 +34,7 @@ jobs:
           mkdir -p _site
           cp app/dist/faidr.html _site/index.html
           cp report.pdf _site/report.pdf
+          cp favicon-512x512.png _site/favicon-512x512.png
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
