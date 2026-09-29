@@ -1,0 +1,44 @@
+cff-version: 1.2.0
+type: software
+title: "FAIDR-Fit: A web tool for exploring intrinsically disordered regions in the human proteome"
+authors:
+  - family-names: "Koenig"
+    given-names: "Guillaume E."
+  - family-names: "Moses"
+    given-names: "Alan M."
+repository-code: "https://github.com/moses-lab/faidr-fit"
+url: "https://moses-lab.github.io/faidr-fit/"
+license: "CC-BY-NC-4.0"
+date-released: 2026-08-25
+references:
+  - type: article
+    title: "A functional map of the human intrinsically disordered proteome"
+    authors:
+      - family-names: "Pritišanac"
+        given-names: "Iva"
+      - family-names: "Alderson"
+        given-names: "T. Reid"
+      - family-names: "Kolarić"
+        given-names: "Đesika"
+      - family-names: "Zarin"
+        given-names: "Taraneh"
+      - family-names: "Xie"
+        given-names: "Shuting"
+      - family-names: "Lu"
+        given-names: "Alex"
+      - family-names: "Alam"
+        given-names: "Aqsa"
+      - family-names: "Maqsood"
+        given-names: "Abdullah"
+      - family-names: "Youn"
+        given-names: "Ji-Young"
+      - family-names: "Forman-Kay"
+        given-names: "Julie D."
+      - family-names: "Moses"
+        given-names: "Alan M."
+    journal: "Proceedings of the National Academy of Sciences"
+    year: 2026
+    volume: 123
+    issue: 21
+    doi: "10.1073/pnas.2604562123"
+    url: "https://doi.org/10.1073/pnas.2604562123"

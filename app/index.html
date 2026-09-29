@@ -136,7 +136,7 @@
     <a href="https://github.com/moses-lab/faidr-fit/issues/new" target="_blank" rel="noopener" title="Opens in a new tab">Open issue<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a>
   </nav>
   <h1>FAIDR-Fit</h1>
-  <p class="sub">Explore the molecular features and function of intrinsically disordered regions (IDRs) across the human proteome in your browser</p>
+  <p class="sub">Explore the molecular features and function of intrinsically disordered regions (IDRs) across the human proteome in your browser<a class="info-link" href="#about-faidr" aria-label="More info" title="More info">i</a></p>
 
   <div class="panel" id="main-panel">
     <label for="positives">Enter a group of proteins sharing an associated function or characteristic<a class="info-link" href="#about-input" aria-label="More info" title="More info">i</a></label>
@@ -203,9 +203,17 @@
     <a class="close-link" href="#top" aria-label="Close">&times;</a>
     <h2>About FAIDR-Fit</h2>
     <p>FAIDR is a statistical model for studying intrinsically disordered regions (IDRs), introduced in <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7932695/" target="_blank" rel="noopener">Zarin et al., eLife (2021)<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a> and applied to the human proteome in <a href="https://doi.org/10.1073/pnas.2604562123" target="_blank" rel="noopener">Pritišanac et al., PNAS (2026)<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a>. This web app provides an online version of it.</p>
+    <p>FAIDR-Fit implements a slightly simplified version of the classifier described in the papers above. It was written with help from AI (Claude Opus 4.8 and Claude Sonnet 5) and refined through significant trial and error and manual checking. Read the <a href="https://moses-lab.github.io/faidr-fit/report.pdf" target="_blank" rel="noopener">report (PDF)<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a> for more details. The web app, code, and report are provided under <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a>, as is and without warranty of any kind.</p>
+    <p>If you use FAIDR-Fit in your research, please cite this tool and the Pritišanac et al. paper above. See the <a href="https://github.com/moses-lab/faidr-fit#how-to-cite" target="_blank" rel="noopener">README<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a> on GitHub for citation details.</p>
+  </div>
+</div>
+
+<div id="about-faidr" class="overlay">
+  <div class="overlay-card">
+    <a class="close-link" href="#top" aria-label="Close">&times;</a>
+    <h2>How FAIDR works</h2>
     <p>FAIDR stands for Feature Analysis of IDRs. Given an initial group of proteins, it extracts molecular features of their IDRs, specifically how conserved each feature is across evolution, and builds a model that identifies which of 144 molecular features are most relevant for predicting group membership.</p>
     <p>Once the model is built, a prediction for every single IDR in the human proteome is available. This allows exploration of proteins sharing similar conserved molecular features in their IDRs.</p>
-    <p>Read the <a href="https://moses-lab.github.io/faidr-fit/report.pdf" target="_blank" rel="noopener">report (PDF)<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a> for more details.</p>
   </div>
 </div>
 
@@ -222,9 +230,9 @@
   <div class="overlay-card">
     <a class="close-link" href="#top" aria-label="Close">&times;</a>
     <h2>Defining a function group</h2>
-    <p>Proteins should be entered as a column (one per line) as uppercase UniProt accession IDs. The easiest way is to copy and paste from a spreadsheet column. Input is lenient: non-matches and duplicates are automatically discarded. All the IDRs of a protein are considered. Specific IDRs can be entered by appending <code>_IDR_&lt;first AA&gt;_&lt;last AA&gt;</code>.</p>
+    <p>Proteins should be entered as a column (one per line) as uppercase UniProt accession IDs. The easiest way is to copy and paste from a spreadsheet column. Input is lenient: non-matches and duplicates are automatically discarded. All the IDRs of a protein are considered. (Unless using specific IDR ids, as found in the list of predictions.)</p>
     <p>Groups of proteins are commonly retrieved from experiment or from GO terms.</p>
-    <p>For example, suppose you are interested in cytoplasmic stress granules, <a href="https://www.ebi.ac.uk/QuickGO/term/GO:0010494" target="_blank" rel="noopener">GO:0010494 at EBI QuickGO<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a>. On the annotation page, filter by Homo sapiens, and export all annotations as TSV (Tab-Separated Values). In that spreadsheet, copy the column "GENE PRODUCT ID" of UniProt accession IDs into the main web app text area.</p>
+    <p>For example, suppose you are interested in cytoplasmic stress granules, <a href="https://www.ebi.ac.uk/QuickGO/term/GO:0010494" target="_blank" rel="noopener">GO:0010494<span class="ext-icon" aria-hidden="true"> ↗</span><span class="sr-only"> (opens in new tab)</span></a> at EBI QuickGO. On the annotation page, filter by Homo sapiens, and export all annotations as TSV (Tab-Separated Values). In that spreadsheet, copy the column "GENE PRODUCT ID" of UniProt accession IDs into the main web app text area.</p>
     <p>Alternatively, you can pick from a predefined list of GO-term-based groups (from Pritišanac et al., PNAS 2026), or randomize a group to gauge baseline performance. A minimum of 100 proteins is advised for adequate performance, as smaller groups tend to show enrichment similar to a random group of the same size.</p>
   </div>
 </div>
@@ -251,7 +259,7 @@
 
 <script>
   (function () {
-    var overlayIds = ["about", "contact", "about-input", "about-features", "about-results"];
+    var overlayIds = ["about", "about-faidr", "contact", "about-input", "about-features", "about-results"];
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && overlayIds.indexOf(location.hash.slice(1)) !== -1) {
         location.hash = "top";
